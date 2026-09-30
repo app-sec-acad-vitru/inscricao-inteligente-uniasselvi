@@ -86,6 +86,19 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
   </section>
 </main>
 
+<section id="nextPage" class="container hidden">
+  <div class="formWrap">
+    <div class="steps"><span class="stepbar">1 • Curso</span><span class="stepbar active">2 • Formação de origem</span><span id="stepDoc" class="stepbar">3 • Documento</span><span class="stepbar">4 • Resultado</span></div>
+    <h2 id="nextTitle">Próxima etapa</h2>
+    <p id="nextText" class="muted">Vamos avançar com a conferência necessária para concluir sua inscrição.</p>
+    <div id="nextContent"></div>
+    <div class="actions">
+      <button class="secondary" onclick="voltarEtapa1()">Voltar</button>
+      <button class="cta" style="margin:0;max-width:260px" onclick="finalizarEtapa()">Continuar para resultado</button>
+    </div>
+  </div>
+</section>
+
 <section id="admin" class="container admin">
   <div class="formWrap">
     <h2 class="sectionTitle">🔐 Área administrativa</h2>
@@ -178,8 +191,60 @@ function analisar(){
    }
  }
  out.innerHTML='<div class="result '+classe+'"><h3>'+titulo+'</h3>'+body+'<p style="font-size:12px;color:#6b7280"><b>Status:</b> '+status+'</p></div>';
+ if(classe==='ok'){
+   out.innerHTML += '<button class="cta" style="max-width:300px" onclick="proximaEtapa()">➡️ Continuar para a próxima etapa</button>';
+ }
  saveRecord({curso,orig,mod,status,t});
 }
+function proximaEtapa(){
+ const t=document.getElementById('tipo').value;
+ const curso=document.getElementById('curso').value;
+ const orig=document.getElementById('origem').value;
+ const next=document.getElementById('nextPage');
+ const content=document.getElementById('nextContent');
+ const stepDoc=document.getElementById('stepDoc');
+ next.classList.remove('hidden');
+ document.getElementById('inscricao').classList.add('hidden');
+ next.scrollIntoView({behavior:'smooth'});
+ if(t==='Segunda Licenciatura'){
+   stepDoc.classList.add('active');
+   document.getElementById('nextTitle').textContent='📄 Conferência documental';
+   document.getElementById('nextText').textContent='Você avançou da análise inicial. Agora precisamos do documento que comprova sua formação de origem.';
+   content.innerHTML='<div class="result info"><h3>Documento da formação de origem</h3><p>Envie seu diploma ou histórico da licenciatura informada: <b>'+orig+'</b>.</p><label>Documento comprobatório *</label><input id="documentoNext" type="file" accept=".pdf,.jpg,.jpeg,.png"><p class="muted" style="font-size:12px">No protótipo, o arquivo apenas simula a conferência documental. A leitura real por OCR/IA será integrada posteriormente.</p></div>';
+ }else{
+   stepDoc.classList.add('active');
+   document.getElementById('nextTitle').textContent='🔎 Conferência final';
+   document.getElementById('nextText').textContent='A validação acadêmica foi concluída para o curso selecionado.';
+   content.innerHTML='<div class="result ok"><h3>🟢 Dados validados</h3><p>Curso: <b>'+curso+'</b></p><p>Formação de origem: <b>'+orig+'</b></p><p>Você pode avançar para a etapa final.</p></div>';
+ }
+}
+function finalizarEtapa(){
+ const t=document.getElementById('tipo').value;
+ if(t==='Segunda Licenciatura'){
+   const f=document.getElementById('documentoNext');
+   if(!f || !f.files.length){ alert('Envie o documento da formação de origem para continuar.'); return; }
+ }
+ const next=document.getElementById('nextPage');
+ const curso=document.getElementById('curso').value;
+ const orig=document.getElementById('origem').value;
+ const mod=document.getElementById('modalidade').value;
+ next.querySelector('.steps').innerHTML='<span class="stepbar">1 • Curso</span><span class="stepbar">2 • Formação de origem</span><span class="stepbar">3 • Documento</span><span class="stepbar active">4 • Resultado</span>';
+ document.getElementById('nextTitle').textContent='🎉 Inscrição pronta para conclusão';
+ document.getElementById('nextText').textContent='As etapas do protótipo foram concluídas.';
+ document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Curso:</b> '+curso+'</p><p><b>Origem:</b> '+orig+'</p><p><b>Modalidade:</b> '+mod+'</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica.</p></div>';
+ const a=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
+ const exists=a.some(x=>x.curso===curso && x.orig===orig && x.mod===mod);
+ if(!exists) saveRecord({curso,orig,mod,status:'Inscrição pronta para conclusão',t});
+ const actions=next.querySelector('.actions'); actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="novaInscricao()">Nova inscrição</button>';
+ next.scrollIntoView({behavior:'smooth'});
+}
+function voltarEtapa1(){
+ document.getElementById('nextPage').classList.add('hidden');
+ document.getElementById('inscricao').classList.remove('hidden');
+ document.getElementById('inscricao').scrollIntoView({behavior:'smooth'});
+}
+function novaInscricao(){location.reload()}
+
 function saveRecord(r){
  let a=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
  a.push({...r,protocolo:'DEMO-'+String(Date.now()).slice(-6)});
