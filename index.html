@@ -23,7 +23,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 .footer{margin-top:45px;background:#111;color:#ddd;padding:35px 24px}.footerIn{max-width:1180px;margin:auto}.footer b{color:#fff}
 @media(max-width:850px){.heroIn{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}.dash{grid-template-columns:1fr 1fr}.navlinks{display:none}.hero h1{font-size:34px}}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
@@ -255,6 +255,8 @@ async function validarDocumento(file){
      if(!docOk) motivos.push('não foram encontradas evidências suficientes de um diploma ou histórico acadêmico');
      if(!originOk) motivos.push('não foi localizada no documento a formação de origem informada ('+escapeHtml(orig)+')');
      showDocStatus('<h3>🔴 Documento não validado</h3><p>Não podemos concluir a inscrição com este arquivo.</p><ul><li>'+motivos.join('</li><li>')+'</li></ul><p><b>O que fazer:</b> envie um diploma, certificado ou histórico acadêmico legível que comprove a formação informada.</p><p style="font-size:12px;color:#6b7280"><b>Curso pretendido:</b> '+escapeHtml(curso)+' • <b>Origem informada:</b> '+escapeHtml(orig)+'</p>','no');
+     const actions=document.querySelector('#nextPage .actions');
+     actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="reprocessarDocumento()">Enviar outro documento</button>';
      return;
    }
    showDocStatus('<h3>🟢 Documento compatível com a formação informada</h3><p>Encontramos evidências de documento acadêmico e identificamos a formação de origem <b>'+escapeHtml(orig)+'</b>.</p><p>Agora podemos concluir a etapa documental e registrar o resultado da análise.</p><p style="font-size:12px;color:#6b7280">Evidências encontradas: '+hits.map(escapeHtml).join(', ')+'</p>','ok');
@@ -262,15 +264,18 @@ async function validarDocumento(file){
    actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="concluirResultado()">Concluir análise</button>';
  }catch(e){
    showDocStatus('<h3>🟠 Não foi possível ler o arquivo</h3><p>O documento foi recebido, mas a leitura automática não conseguiu extrair texto suficiente. Isso <b>não significa aprovação</b>.</p><p>Envie uma imagem/PDF mais legível ou deixe a análise para conferência acadêmica.</p><p style="font-size:12px;color:#6b7280">Detalhe técnico: '+escapeHtml(e.message||'falha de leitura')+'</p>','info');
+   const actions=document.querySelector('#nextPage .actions');
+   actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="reprocessarDocumento()">Tentar outro arquivo</button>';
  }
 }
 
 async function ocrFile(file){
  const type=(file.type||'').toLowerCase();
  if(type==='application/pdf' || file.name.toLowerCase().endsWith('.pdf')){
-   const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+   if(!window.pdfjsLib) throw new Error('Leitor PDF não carregado.');
+   window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
    const data=await file.arrayBuffer();
-   const pdf=await pdfjs.getDocument({data}).promise;
+   const pdf=await window.pdfjsLib.getDocument({data}).promise;
    let all='';
    const pages=Math.min(pdf.numPages,3);
    for(let i=1;i<=pages;i++){
@@ -286,6 +291,14 @@ async function ocrFile(file){
  }
  const r=await Tesseract.recognize(file,'por',{logger:()=>{}});
  return r.data.text;
+}
+
+function reprocessarDocumento(){
+ const f=document.getElementById('documentoNext');
+ if(f) f.value='';
+ const actions=document.querySelector('#nextPage .actions');
+ actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="finalizarEtapa()">Continuar para análise</button>';
+ document.getElementById('nextContent').innerHTML='<div class="result info"><h3>📎 Envie outro documento</h3><p>Selecione um diploma, certificado ou histórico acadêmico legível que comprove a formação informada.</p><label>Documento comprobatório *</label><input id="documentoNext" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>';
 }
 
 function concluirResultado(){
