@@ -23,6 +23,8 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 .footer{margin-top:45px;background:#111;color:#ddd;padding:35px 24px}.footerIn{max-width:1180px;margin:auto}.footer b{color:#fff}
 @media(max-width:850px){.heroIn{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}.dash{grid-template-columns:1fr 1fr}.navlinks{display:none}.hero h1{font-size:34px}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 <div class="top"><span>Inscreva-se • Encontre o curso que combina com você</span><span>Atendimento: (47) 3301-6100</span></div>
@@ -218,12 +220,76 @@ function proximaEtapa(){
    content.innerHTML='<div class="result ok"><h3>🟢 Dados validados</h3><p>Curso: <b>'+curso+'</b></p><p>Formação de origem: <b>'+orig+'</b></p><p>Você pode avançar para a etapa final.</p></div>';
  }
 }
-function finalizarEtapa(){
+async function finalizarEtapa(){
  const t=document.getElementById('tipo').value;
+ const f=document.getElementById('documentoNext');
+ if(t==='Segunda Licenciatura' && (!f || !f.files.length)){ alert('Envie o documento da formação de origem para continuar.'); return; }
  if(t==='Segunda Licenciatura'){
-   const f=document.getElementById('documentoNext');
-   if(!f || !f.files.length){ alert('Envie o documento da formação de origem para continuar.'); return; }
+   await validarDocumento(f.files[0]);
+   return;
  }
+ concluirResultado();
+}
+
+function escapeHtml(v){return String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[m]));}
+function normalizeText(s){return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+function showDocStatus(html, cls='info'){
+ const c=document.getElementById('nextContent');
+ c.innerHTML='<div class="result '+cls+'">'+html+'</div>';
+}
+
+async function validarDocumento(file){
+ const orig=document.getElementById('origem').value;
+ const curso=document.getElementById('curso').value;
+ const c=document.getElementById('nextContent');
+ c.innerHTML='<div class="result info"><h3>🔎 Analisando seu documento</h3><p>Estamos verificando se o arquivo enviado realmente corresponde a um documento acadêmico e se contém evidências da formação de origem informada: <b>'+escapeHtml(orig)+'</b>.</p><p><b>Não vamos considerar apenas o envio do arquivo como aprovação.</b></p><p style="font-size:12px;color:#6b7280">Leitura OCR demonstrativa no navegador.</p></div>';
+ try{
+   const text=await ocrFile(file);
+   const n=normalizeText(text);
+   const originOk=n.includes(normalizeText(orig));
+   const academicTerms=['diploma','historico escolar','historico academico','graduacao','licenciatura','conclusao','curso superior','instituicao de ensino','colacao de grau'];
+   const hits=academicTerms.filter(x=>n.includes(x));
+   const docOk=hits.length>=2;
+   if(!docOk || !originOk){
+     const motivos=[];
+     if(!docOk) motivos.push('não foram encontradas evidências suficientes de um diploma ou histórico acadêmico');
+     if(!originOk) motivos.push('não foi localizada no documento a formação de origem informada ('+escapeHtml(orig)+')');
+     showDocStatus('<h3>🔴 Documento não validado</h3><p>Não podemos concluir a inscrição com este arquivo.</p><ul><li>'+motivos.join('</li><li>')+'</li></ul><p><b>O que fazer:</b> envie um diploma, certificado ou histórico acadêmico legível que comprove a formação informada.</p><p style="font-size:12px;color:#6b7280"><b>Curso pretendido:</b> '+escapeHtml(curso)+' • <b>Origem informada:</b> '+escapeHtml(orig)+'</p>','no');
+     return;
+   }
+   showDocStatus('<h3>🟢 Documento compatível com a formação informada</h3><p>Encontramos evidências de documento acadêmico e identificamos a formação de origem <b>'+escapeHtml(orig)+'</b>.</p><p>Agora podemos concluir a etapa documental e registrar o resultado da análise.</p><p style="font-size:12px;color:#6b7280">Evidências encontradas: '+hits.map(escapeHtml).join(', ')+'</p>','ok');
+   const actions=document.querySelector('#nextPage .actions');
+   actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="concluirResultado()">Concluir análise</button>';
+ }catch(e){
+   showDocStatus('<h3>🟠 Não foi possível ler o arquivo</h3><p>O documento foi recebido, mas a leitura automática não conseguiu extrair texto suficiente. Isso <b>não significa aprovação</b>.</p><p>Envie uma imagem/PDF mais legível ou deixe a análise para conferência acadêmica.</p><p style="font-size:12px;color:#6b7280">Detalhe técnico: '+escapeHtml(e.message||'falha de leitura')+'</p>','info');
+ }
+}
+
+async function ocrFile(file){
+ const type=(file.type||'').toLowerCase();
+ if(type==='application/pdf' || file.name.toLowerCase().endsWith('.pdf')){
+   const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+   const data=await file.arrayBuffer();
+   const pdf=await pdfjs.getDocument({data}).promise;
+   let all='';
+   const pages=Math.min(pdf.numPages,3);
+   for(let i=1;i<=pages;i++){
+     const page=await pdf.getPage(i);
+     const viewport=page.getViewport({scale:1.5});
+     const canvas=document.createElement('canvas');
+     canvas.width=viewport.width; canvas.height=viewport.height;
+     await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+     const r=await Tesseract.recognize(canvas,'por',{logger:()=>{}});
+     all+='\n'+r.data.text;
+   }
+   return all;
+ }
+ const r=await Tesseract.recognize(file,'por',{logger:()=>{}});
+ return r.data.text;
+}
+
+function concluirResultado(){
+ const t=document.getElementById('tipo').value;
  const next=document.getElementById('nextPage');
  const curso=document.getElementById('curso').value;
  const orig=document.getElementById('origem').value;
@@ -231,7 +297,7 @@ function finalizarEtapa(){
  next.querySelector('.steps').innerHTML='<span class="stepbar">1 • Curso</span><span class="stepbar">2 • Formação de origem</span><span class="stepbar">3 • Documento</span><span class="stepbar active">4 • Resultado</span>';
  document.getElementById('nextTitle').textContent='🎉 Inscrição pronta para conclusão';
  document.getElementById('nextText').textContent='As etapas do protótipo foram concluídas.';
- document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Curso:</b> '+curso+'</p><p><b>Origem:</b> '+orig+'</p><p><b>Modalidade:</b> '+mod+'</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica.</p></div>';
+ document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Origem:</b> '+escapeHtml(orig)+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> conferido automaticamente nesta demonstração.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica.</p></div>';
  const a=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
  const exists=a.some(x=>x.curso===curso && x.orig===orig && x.mod===mod);
  if(!exists) saveRecord({curso,orig,mod,status:'Inscrição pronta para conclusão',t});
