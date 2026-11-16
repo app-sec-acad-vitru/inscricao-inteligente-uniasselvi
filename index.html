@@ -375,13 +375,13 @@ function analisar(){
    document.getElementById(({nome:'candNome',cpf:'candCpf',endereco:'candEndereco',numero:'candNumero',cep:'candCep',celular:'candCelular',email:'candEmail'})[dadosFaltantes[0][0]]).focus();
    return;
  }
- const cpfDigits=candidato.cpf.replace(/\\D/g,'');
- const cepDigits=candidato.cep.replace(/\\D/g,'');
- const phoneDigits=candidato.celular.replace(/\\D/g,'');
+ const cpfDigits=candidato.cpf.replace(/\D/g,'');
+ const cepDigits=candidato.cep.replace(/\D/g,'');
+ const phoneDigits=candidato.celular.replace(/\D/g,'');
  if(cpfDigits.length!==11){out.innerHTML='<div class="result info"><h3>Confira o CPF</h3><p>Informe um CPF com 11 números.</p></div>';document.getElementById('candCpf').focus();return}
  if(cepDigits.length!==8){out.innerHTML='<div class="result info"><h3>Confira o CEP</h3><p>Informe um CEP com 8 números.</p></div>';document.getElementById('candCep').focus();return}
  if(phoneDigits.length<10||phoneDigits.length>11){out.innerHTML='<div class="result info"><h3>Confira o celular</h3><p>Informe um telefone com DDD e 10 ou 11 números.</p></div>';document.getElementById('candCelular').focus();return}
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(candidato.email)){out.innerHTML='<div class="result info"><h3>Confira o e-mail</h3><p>Informe um endereço de e-mail válido.</p></div>';document.getElementById('candEmail').focus();return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidato.email)){out.innerHTML='<div class="result info"><h3>Confira o e-mail</h3><p>Informe um endereço de e-mail válido.</p></div>';document.getElementById('candEmail').focus();return}
  const tipoKey=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
  const origemKey=String(orig||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
  if(tipoKey.includes('segunda licenciatura') && origemKey.includes('pedagogia')){
@@ -584,20 +584,20 @@ function getCandidateData(){
  };
 }
 function maskCPF(input){
- let v=input.value.replace(/\\D/g,'').slice(0,11);
- v=v.replace(/(\\d{3})(\\d)/,'$1.$2').replace(/(\\d{3})(\\d)/,'$1.$2').replace(/(\\d{3})(\\d{1,2})$/,'$1-$2');
+ let v=input.value.replace(/\D/g,'').slice(0,11);
+ v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
  input.value=v;
 }
 function maskCEP(input){
- let v=input.value.replace(/\\D/g,'').slice(0,8);
+ let v=input.value.replace(/\D/g,'').slice(0,8);
  if(v.length>5)v=v.slice(0,5)+'-'+v.slice(5);
  input.value=v;
 }
 function maskPhone(input){
- let v=input.value.replace(/\\D/g,'').slice(0,11);
- if(v.length>10)v=v.replace(/(\\d{2})(\\d{5})(\\d{0,4})/,'($1) $2-$3');
- else if(v.length>6)v=v.replace(/(\\d{2})(\\d{4})(\\d{0,4})/,'($1) $2-$3');
- else if(v.length>2)v=v.replace(/(\\d{2})(\\d+)/,'($1) $2');
+ let v=input.value.replace(/\D/g,'').slice(0,11);
+ if(v.length>10)v=v.replace(/(\d{2})(\d{5})(\d{0,4})/,'($1) $2-$3');
+ else if(v.length>6)v=v.replace(/(\d{2})(\d{4})(\d{0,4})/,'($1) $2-$3');
+ else if(v.length>2)v=v.replace(/(\d{2})(\d+)/,'($1) $2');
  input.value=v;
 }
 function saveRecord(r){
