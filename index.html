@@ -61,8 +61,9 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 <div class="card"><div class="cardBody"><span class="pill blue">Segunda Licenciatura</span><h3>Nova formação docente</h3><p>Conferência da formação de origem e aplicação das regras acadêmicas pertinentes.</p><button class="cta" onclick="prefill('Segunda Licenciatura')">Verificar elegibilidade</button></div></div>
 <div class="card"><div class="cardBody"><span class="pill green">Formação Pedagógica</span><h3>Formação de origem</h3><p>Análise de afinidade entre a formação concluída e o curso pretendido.</p><button class="cta" onclick="prefill('Formação Pedagógica')">Verificar afinidade</button></div></div></div>
 <section id="inscricao" class="formWrap">
-    <div class="steps"><span class="stepbar active">1 • Curso</span><span class="stepbar">2 • Formação de origem</span><span class="stepbar">3 • Documento</span><span class="stepbar">4 • Resultado</span></div>
+    <div class="steps" id="wizardSteps"><span class="stepbar active">1 • Dados do candidato</span><span class="stepbar">2 • Curso</span><span class="stepbar">3 • Formação de origem</span><span class="stepbar">4 • Documento</span><span class="stepbar">5 • Resultado</span></div>
     <h2>Inscrição</h2>
+    <div id="candidateStepPanel">
     <h3 style="margin:18px 0 10px">Dados do candidato</h3>
     <p class="muted">Preencha seus dados para iniciar a análise de elegibilidade.</p>
     <p style="font-size:12px;color:#8a4b08;background:#fff8e1;border:1px solid #f2d27a;padding:10px 12px;border-radius:6px">Ambiente demonstrativo: utilize dados fictícios. As informações são armazenadas apenas neste navegador e ainda não contam com ambiente seguro de produção.</p>
@@ -80,6 +81,9 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     </div>
     <label for="candEmail">E-mail *</label>
     <input id="candEmail" type="email" autocomplete="email" placeholder="seuemail@exemplo.com">
+      <div class="actions"><button class="secondary" onclick="resetForm()">Limpar</button><button class="cta" style="margin:0;max-width:260px" onclick="continuarDadosCandidato()">Continuar para dados do curso</button></div>
+    </div>
+    <div id="courseStepPanel" class="hidden">
     <div style="border-top:1px solid #e5e7eb;margin:22px 0 16px"></div>
     <h3 style="margin:0 0 10px">Dados do curso</h3>
     <p class="muted">Selecione o tipo de curso, a modalidade e o curso desejado.</p>
@@ -90,7 +94,12 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <label>Curso *</label>
     <select id="curso" onchange="courseChanged()"><option value="">Selecione primeiro o tipo de curso</option></select>
 
-    <div id="originBox" class="hidden">
+      <div class="actions"><button class="secondary" onclick="voltarDadosCandidato()">Voltar</button><button class="cta" style="margin:0;max-width:240px" onclick="continuarCursoEtapa()">Continuar</button></div>
+    </div>
+    <div id="originStepPanel" class="hidden">
+      <h3 style="margin:0 0 10px">Formação de origem</h3>
+      <p class="muted">Informe sua formação anterior para realizarmos a análise de afinidade e elegibilidade.</p>
+    <div id="originBox">
       <label>Curso de origem *</label>
       <select id="origem" onchange="originChanged()">
         <option value="">Selecione sua formação</option>
@@ -101,14 +110,15 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
         <p class="muted" style="font-size:12px">Protótipo: o arquivo é utilizado para simular a etapa de conferência documental. A integração real com OCR/IA será conectada posteriormente.</p>
       </div>
     </div>
-    <div class="actions"><button class="secondary" onclick="resetForm()">Limpar</button><button class="cta" style="margin:0;max-width:240px" onclick="analisar()">Continuar inscrição</button></div>
+      <div class="actions"><button class="secondary" onclick="voltarCursoEtapa()">Voltar</button><button class="cta" style="margin:0;max-width:240px" onclick="analisar()">Analisar elegibilidade</button></div>
+    </div>
     <div id="resultado"></div>
-  </section>
+</section>
 </main>
 
 <section id="nextPage" class="container hidden">
   <div class="formWrap">
-    <div class="steps"><span class="stepbar">1 • Curso</span><span class="stepbar active">2 • Formação de origem</span><span id="stepDoc" class="stepbar">3 • Documento</span><span class="stepbar">4 • Resultado</span></div>
+    <div class="steps"><span class="stepbar done">1 • Dados do candidato</span><span class="stepbar done">2 • Curso</span><span class="stepbar done">3 • Formação de origem</span><span id="stepDoc" class="stepbar active">4 • Documento</span><span class="stepbar">5 • Resultado</span></div>
     <h2 id="nextTitle">Próxima etapa</h2>
     <p id="nextText" class="muted">Vamos avançar com a conferência necessária para concluir sua inscrição.</p>
     <div id="nextContent"></div>
@@ -366,6 +376,60 @@ function originChanged(){
  document.getElementById('docBox').classList.add('hidden');
 }
 function normalize(s){return (s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase()}
+function setWizardStep(step){
+ const bars=document.querySelectorAll('#wizardSteps .stepbar');
+ bars.forEach((bar,index)=>{
+  bar.classList.toggle('active',index===step-1);
+  bar.classList.toggle('done',index<step-1);
+ });
+}
+function showWizardPanel(id){
+ ['candidateStepPanel','courseStepPanel','originStepPanel'].forEach(panelId=>{
+  document.getElementById(panelId).classList.toggle('hidden',panelId!==id);
+ });
+ document.getElementById('resultado').innerHTML='';
+}
+function validateCandidateData(){
+ const out=document.getElementById('resultado');
+ const data=getCandidateData();
+ const missing=Object.entries(data).find(([key,value])=>!String(value||'').trim());
+ if(missing){
+  out.innerHTML='<div class="result info"><h3>🙂 Complete seus dados</h3><p>Preencha todos os campos obrigatórios para continuar.</p></div>';
+  document.getElementById(({nome:'candNome',cpf:'candCpf',endereco:'candEndereco',numero:'candNumero',cep:'candCep',celular:'candCelular',email:'candEmail'})[missing[0]]).focus();
+  return false;
+ }
+ if(data.cpf.replace(/\\D/g,'').length!==11){out.innerHTML='<div class="result info"><h3>Confira o CPF</h3><p>Informe um CPF com 11 números.</p></div>';document.getElementById('candCpf').focus();return false;}
+ if(data.cep.replace(/\\D/g,'').length!==8){out.innerHTML='<div class="result info"><h3>Confira o CEP</h3><p>Informe um CEP com 8 números.</p></div>';document.getElementById('candCep').focus();return false;}
+ const phone=data.celular.replace(/\\D/g,'');
+ if(phone.length<10||phone.length>11){out.innerHTML='<div class="result info"><h3>Confira o celular</h3><p>Informe um telefone com DDD e 10 ou 11 números.</p></div>';document.getElementById('candCelular').focus();return false;}
+ if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(data.email)){out.innerHTML='<div class="result info"><h3>Confira o e-mail</h3><p>Informe um endereço de e-mail válido.</p></div>';document.getElementById('candEmail').focus();return false;}
+ return true;
+}
+function continuarDadosCandidato(){
+ if(!validateCandidateData()) return;
+ showWizardPanel('courseStepPanel');setWizardStep(2);
+ document.getElementById('inscricao').scrollIntoView({behavior:'smooth'});
+}
+function voltarDadosCandidato(){
+ showWizardPanel('candidateStepPanel');setWizardStep(1);
+ document.getElementById('inscricao').scrollIntoView({behavior:'smooth'});
+}
+function continuarCursoEtapa(){
+ const t=document.getElementById('tipo').value,mod=document.getElementById('modalidade').value,curso=document.getElementById('curso').value;
+ const out=document.getElementById('resultado');
+ if(!t||!mod||!curso){out.innerHTML='<div class="result info"><h3>🙂 Complete os dados do curso</h3><p>Selecione o tipo, a modalidade e o curso desejado.</p></div>';return;}
+ const originBox=document.getElementById('originBox');
+ if(!originBox.classList.contains('hidden')){
+  showWizardPanel('originStepPanel');setWizardStep(3);
+  document.getElementById('inscricao').scrollIntoView({behavior:'smooth'});
+ }else{
+  analisar();
+ }
+}
+function voltarCursoEtapa(){
+ showWizardPanel('courseStepPanel');setWizardStep(2);
+ document.getElementById('inscricao').scrollIntoView({behavior:'smooth'});
+}
 function analisar(){
  const t=document.getElementById('tipo').value,mod=document.getElementById('modalidade').value,curso=document.getElementById('curso').value,orig=document.getElementById('origem').value;
  const out=document.getElementById('resultado');
