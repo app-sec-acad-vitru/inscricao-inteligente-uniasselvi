@@ -367,7 +367,7 @@ function updateModalities(){
 }
 function courseChanged(){
  const t=document.getElementById('tipo').value;
- if(t==='Segunda Licenciatura'||t==='Formação Pedagógica'||t==='Graduação') document.getElementById('originBox').classList.remove('hidden');
+ if(t==='Segunda Licenciatura'||t==='Formação Pedagógica') document.getElementById('originBox').classList.remove('hidden');
  else document.getElementById('originBox').classList.add('hidden');
  document.getElementById('resultado').innerHTML='';
 }
@@ -456,11 +456,14 @@ function analisar(){
    return;
  }
  if(!t||!mod||!curso){out.innerHTML='<div class="result info"><h3>🙂 Falta só um pouquinho</h3><p>Preencha tipo de curso, modalidade e curso para continuar.</p></div>';return}
- if(['Segunda Licenciatura','Formação Pedagógica','Graduação'].includes(t)&&!orig){out.innerHTML='<div class="result info"><h3>🙂 Informe sua formação de origem</h3><p>Selecione o curso de origem para continuar.</p></div>';return}
+ if(['Segunda Licenciatura','Formação Pedagógica'].includes(t)&&!orig){out.innerHTML='<div class="result info"><h3>🙂 Informe sua formação de origem</h3><p>Selecione o curso de origem para continuar.</p></div>';return}
  let status='Aguardando análise',classe='info',titulo='🔎 Vamos conferir';
  let body='';
 
- if(t==='Segunda Licenciatura'){
+ if(t==='Graduação'){
+   classe='ok';status='Inscrição de Graduação liberada';titulo='🟢 Tudo certo para continuar';
+   body='<p>O curso de Graduação selecionado está pronto para seguir no fluxo de inscrição.</p><p><b>Importante:</b> para Graduação, não realizamos análise de afinidade de formação de origem e não solicitamos diploma ou histórico nesta etapa.</p>';
+ } else if(t==='Segunda Licenciatura'){
    if(String(orig||'').trim().toLowerCase().includes('pedagogia')){
      classe='no';status='Impedimento regulatório';titulo='⚠️ Segunda Licenciatura não permitida para formação em Pedagogia';
      body='<p>Identificamos que sua formação de origem é <b>Pedagogia</b>.</p><p>A Resolução CNE/CP nº 4/2024, art. 16, § 8º, excepciona a licenciatura em Pedagogia da possibilidade de ingresso em Segunda Licenciatura. O Parecer CNE/CP nº 5/2025 esclarece que o(a) pedagogo(a) não pode cursar Segunda Licenciatura em outra área.</p><p><b>A inscrição não pode prosseguir nesta modalidade.</b></p><p><b>Base normativa:</b> Resolução CNE/CP nº 4/2024 e Parecer CNE/CP nº 5/2025.</p>';
@@ -500,6 +503,12 @@ function proximaEtapa(){
  const t=document.getElementById('tipo').value;
  const curso=document.getElementById('curso').value;
  const orig=document.getElementById('origem').value;
+ if(t==='Graduação'){
+   document.getElementById('nextPage').classList.remove('hidden');
+   document.getElementById('inscricao').classList.add('hidden');
+   concluirResultado();
+   return;
+ }
  if(String(t||'').trim().toLowerCase().includes('segunda licenciatura') && String(orig||'').trim().toLowerCase().includes('pedagogia')){
    alert('Inscrição bloqueada: Pedagogia não permite ingresso em Segunda Licenciatura, conforme Resolução CNE/CP nº 4/2024, art. 16, § 8º, e Parecer CNE/CP nº 5/2025.');
    document.getElementById('nextPage').classList.add('hidden');
@@ -618,6 +627,8 @@ function reprocessarDocumento(){
 function concluirResultado(){
  const t=document.getElementById('tipo').value;
  const next=document.getElementById('nextPage');
+ next.classList.remove('hidden');
+ document.getElementById('inscricao').classList.add('hidden');
  const curso=document.getElementById('curso').value;
  const orig=document.getElementById('origem').value;
  const mod=document.getElementById('modalidade').value;
