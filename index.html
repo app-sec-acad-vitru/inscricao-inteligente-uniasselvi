@@ -143,6 +143,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     </div>
     <div id="adminData" class="hidden">
     <button class="secondary" onclick="renderAdmin()">Atualizar inscrições</button>
+    <button class="secondary" onclick="exportCentralCsv()">Exportar inscrições (CSV)</button>
     <button class="secondary" onclick="logoutAdmin()">Sair do painel</button>
     <div class="dash">
       <div class="metric"><small>Inscrições</small><strong id="mTotal">0</strong></div>
@@ -154,8 +155,8 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
       <div class="metric"><small>Aguardando análise</small><strong id="mWait">0</strong></div>
       <div class="metric"><small>Outros cursos</small><strong id="mOther">0</strong></div>
     </div>
-    <h3>Inscrições registradas neste navegador</h3>
-    <p class="muted">Até a conexão com o banco central, estes registros existem somente neste navegador.</p>
+    <h3>Inscrições registradas na base central</h3>
+    <p class="muted">Esta lista consulta os registros centralizados no Supabase, independentemente do dispositivo utilizado na inscrição.</p>
     <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar inscrições deste navegador (JSON)</button>
     <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
     </div>
@@ -760,12 +761,24 @@ function exportLocalRegistrations(){
  document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
  alert(records.length+' inscrição(ões) exportada(s). Guarde o arquivo em local seguro; ele contém dados pessoais.');
 }
+let lastAdminRows=[];
+function exportCentralCsv(){
+ if(!lastAdminRows.length){alert('Não há inscrições carregadas para exportar.');return;}
+ const cols=[['protocolo','Protocolo'],['created_at','Data de inscrição'],['nome','Nome'],['cpf','CPF'],['endereco','Endereço'],['numero','Número'],['cep','CEP'],['celular','Celular'],['email','E-mail'],['tipo_curso','Tipo de curso'],['modalidade','Modalidade'],['curso','Curso'],['curso_origem','Curso de origem'],['status','Status']];
+ const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const csv='\\uFEFF'+[cols.map(x=>quote(x[1])).join(';'),...lastAdminRows.map(r=>cols.map(x=>quote(r[x[0]])).join(';'))].join('\\r\\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob);const link=document.createElement('a');
+ link.href=url;link.download='inscricoes-centralizadas-'+new Date().toISOString().slice(0,10)+'.csv';
+ document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+}
 async function renderAdmin(){
  const body=document.getElementById('tbody');
  body.innerHTML='<tr><td colspan="12">Carregando inscrições...</td></tr>';
  const {data:a,error}=await supabaseClient.from('inscricoes').select('*').order('created_at',{ascending:false}).limit(1000);
  if(error){body.innerHTML='<tr><td colspan="12">Erro ao consultar inscrições: '+escapeHtml(error.message)+'</td></tr>';return;}
  const rows=a||[];
+ lastAdminRows=rows;
  const n=k=>rows.filter(x=>x.tipo_curso===k).length;
  document.getElementById('mTotal').textContent=rows.length;
  document.getElementById('mSeg').textContent=n('Segunda Licenciatura');
