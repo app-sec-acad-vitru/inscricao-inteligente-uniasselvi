@@ -35,6 +35,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 @media(max-width:560px){.grid{grid-template-columns:1fr}.top{font-size:11px}.hero{padding:42px 20px}.container{padding:35px 18px}.formWrap{padding:20px}.footerCols{grid-template-columns:1fr}}</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <nav class="nav"><div class="navin">
@@ -132,7 +133,17 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 <section id="admin" class="container admin">
   <div class="formWrap">
     <h2 class="sectionTitle">🔐 Área administrativa</h2>
-    <p class="muted">Painel demonstrativo para acompanhamento das inscrições e resultados da análise.</p>
+    <p class="muted">Painel central de inscrições. Acesso restrito a usuários administradores autenticados.</p>
+    <div id="adminLogin" class="result info" style="max-width:520px">
+      <h3>Entrar no painel administrativo</h3>
+      <label for="adminEmail">E-mail</label><input id="adminEmail" type="email" autocomplete="username" placeholder="Seu e-mail administrativo">
+      <label for="adminPassword">Senha</label><input id="adminPassword" type="password" autocomplete="current-password" placeholder="Sua senha">
+      <button class="cta" style="max-width:220px" onclick="loginAdmin()">Entrar</button>
+      <p id="adminLoginMessage" role="status"></p>
+    </div>
+    <div id="adminData" class="hidden">
+    <button class="secondary" onclick="renderAdmin()">Atualizar inscrições</button>
+    <button class="secondary" onclick="logoutAdmin()">Sair do painel</button>
     <div class="dash">
       <div class="metric"><small>Inscrições</small><strong id="mTotal">0</strong></div>
       <div class="metric"><small>Segunda Licenciatura</small><strong id="mSeg">0</strong></div>
@@ -147,6 +158,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <p class="muted">Até a conexão com o banco central, estes registros existem somente neste navegador.</p>
     <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar inscrições deste navegador (JSON)</button>
     <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    </div>
     <button class="secondary" style="margin-top:18px" onclick="closeAdmin()">Voltar à inscrição</button>
   </div>
 </section>
@@ -154,6 +166,9 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 <footer class="footer" id="duvidas"><div class="footerIn"><b>UNIASSELVI • Inscrição Inteligente</b><p>Projeto piloto demonstrativo. A análise acadêmica depende da base institucional e normativa vigente.</p><div class="footerCols"><div><b>Cursos</b><a href="#cursos">Graduação</a><a href="#cursos">Pós-graduação</a><a href="#cursos">Profissionalizantes</a></div><div><b>Ingresso</b><a href="#formas">Formas de ingresso</a><a href="#inscricao">Segunda Licenciatura</a><a href="#inscricao">Formação Pedagógica</a></div><div><b>Atendimento</b><a href="#duvidas">(47) 3301-6100</a><a href="#inscricao">Começar inscrição</a></div></div><p style="margin-top:28px;font-size:12px;color:#aaa">Protótipo de inovação acadêmica • Não representa uma página oficial de matrícula.</p></div></footer>
 
 <script>
+const SUPABASE_URL='https://krkrrcrutggnabywgcan.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_-FO8uwGUccIa17DMxDo9Kg_CqX4fkBo';
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const courses={
  "Graduação":["Pedagogia","Administração","Ciências Contábeis","Nutrição","Biomedicina","Análise e Desenvolvimento de Sistemas"],
  "Segunda Licenciatura":[
@@ -499,7 +514,7 @@ function analisar(){
  if(classe==='ok'){
    out.innerHTML += '<button class="cta" style="max-width:300px" onclick="proximaEtapa()">➡️ Continuar para a próxima etapa</button>';
  }
- saveRecord({curso,orig,mod,status,t});
+ if(classe!=='ok') saveRecord({curso,orig,mod,status,t});
 }
 function proximaEtapa(){
  const t=document.getElementById('tipo').value;
@@ -639,9 +654,7 @@ function concluirResultado(){
  document.getElementById('nextText').textContent='As etapas do protótipo foram concluídas.';
  const candidato=getCandidateData();
  document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Candidato:</b> '+escapeHtml(candidato.nome)+'</p><p><b>CPF:</b> '+escapeHtml(candidato.cpf)+'</p><p><b>E-mail:</b> '+escapeHtml(candidato.email)+'</p><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Origem:</b> '+escapeHtml(orig||'Não se aplica')+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> conferido automaticamente nesta demonstração, quando aplicável.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica.</p></div>';
- const a=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
- const exists=a.some(x=>x.curso===curso && x.orig===orig && x.mod===mod);
- if(!exists) saveRecord({curso,orig,mod,status:'Inscrição pronta para conclusão',t});
+ if(!activeInscriptionSaved) saveRecord({curso,orig,mod,status:t==='Graduação'?'Inscrição de Graduação liberada':'Inscrição pronta para conclusão',t});
  const actions=next.querySelector('.actions'); actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="novaInscricao()">Nova inscrição</button>';
  next.scrollIntoView({behavior:'smooth'});
 }
@@ -681,15 +694,59 @@ function maskPhone(input){
  else if(v.length>2)v=v.replace(/(\d{2})(\d+)/,'($1) $2');
  input.value=v;
 }
-function saveRecord(r){
- let a=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
- a.push({...getCandidateData(),...r,protocolo:'DEMO-'+String(Date.now()).slice(-6)});
- localStorage.setItem('inscricoes_demo',JSON.stringify(a));
+let activeInscriptionSaved=false;
+async function saveRecord(r){
+ if(activeInscriptionSaved)return;
+ activeInscriptionSaved=true;
+ const candidate=getCandidateData();
+ const localRecord={...candidate,...r,protocolo:'PENDENTE-'+String(Date.now()).slice(-6),created_at:new Date().toISOString()};
+ let local=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
+ local.push(localRecord);
+ localStorage.setItem('inscricoes_demo',JSON.stringify(local));
+ const payload={
+  nome:candidate.nome,cpf:candidate.cpf,endereco:candidate.endereco,numero:candidate.numero,
+  cep:candidate.cep,celular:candidate.celular,email:candidate.email,
+  tipo_curso:r.t,modalidade:r.mod,curso:r.curso,curso_origem:r.orig||null,
+  status:r.status,resultado:r.status,origem_registro:'portal'
+ };
+ const {data,error}=await supabaseClient.from('inscricoes').insert(payload).select('id,protocolo,created_at').single();
+ if(error){
+   activeInscriptionSaved=false;
+   console.error('Falha ao gravar inscrição no Supabase:',error);
+   alert('Não foi possível salvar sua inscrição na base central. Seus dados ficaram apenas neste navegador. Motivo: '+error.message);
+   return null;
+ }
+ localRecord.protocolo=data.protocolo;
+ localRecord.id=data.id;
+ localRecord.created_at=data.created_at;
+ localStorage.setItem('inscricoes_demo',JSON.stringify(local));
+ return data;
 }
-function openAdmin(){
- const pin=prompt('Digite o PIN administrativo do protótipo:');
- if(pin!=='2026'){alert('PIN inválido.');return}
- document.getElementById('admin').classList.add('show');document.getElementById('admin').scrollIntoView({behavior:'smooth'});renderAdmin();
+async function openAdmin(){
+ document.getElementById('admin').classList.add('show');
+ document.getElementById('admin').scrollIntoView({behavior:'smooth'});
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(session){await renderAdmin();}else{document.getElementById('adminLogin').classList.remove('hidden');document.getElementById('adminData').classList.add('hidden');}
+}
+async function loginAdmin(){
+ const email=document.getElementById('adminEmail').value.trim();
+ const password=document.getElementById('adminPassword').value;
+ const message=document.getElementById('adminLoginMessage');
+ message.textContent='Validando acesso...';
+ const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+ if(error){message.textContent='Não foi possível entrar. Confira e-mail e senha.';return;}
+ const {data:role,error:roleError}=await supabaseClient.from('admin_users').select('user_id').eq('user_id',data.user.id).maybeSingle();
+ if(roleError||!role){await supabaseClient.auth.signOut();message.textContent='Este usuário não possui permissão administrativa.';return;}
+ message.textContent='';
+ document.getElementById('adminLogin').classList.add('hidden');
+ document.getElementById('adminData').classList.remove('hidden');
+ await renderAdmin();
+}
+async function logoutAdmin(){
+ await supabaseClient.auth.signOut();
+ document.getElementById('adminData').classList.add('hidden');
+ document.getElementById('adminLogin').classList.remove('hidden');
+ document.getElementById('adminPassword').value='';
 }
 function closeAdmin(){document.getElementById('admin').classList.remove('show');document.getElementById('inscricao').scrollIntoView({behavior:'smooth'})}
 function exportLocalRegistrations(){
@@ -703,16 +760,22 @@ function exportLocalRegistrations(){
  document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
  alert(records.length+' inscrição(ões) exportada(s). Guarde o arquivo em local seguro; ele contém dados pessoais.');
 }
-function renderAdmin(){
- const a=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
- const n=k=>a.filter(x=>x.t===k).length;
- document.getElementById('mTotal').textContent=a.length;document.getElementById('mSeg').textContent=n('Segunda Licenciatura');document.getElementById('mPed').textContent=n('Formação Pedagógica');
- document.getElementById('mOk').textContent=a.filter(x=>x.status==='Afinidade identificada'||x.status==='Apto na regra inicial').length;
- document.getElementById('mNo').textContent=a.filter(x=>x.status==='Sem afinidade').length;
- document.getElementById('mImp').textContent=a.filter(x=>x.status==='Impedimento regulatório').length;
- document.getElementById('mWait').textContent=a.filter(x=>x.status==='Aguardando análise').length;
- document.getElementById('mOther').textContent=a.filter(x=>!['Segunda Licenciatura','Formação Pedagógica'].includes(x.t)).length;
- document.getElementById('tbody').innerHTML=a.slice().reverse().map(x=>'<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.orig||'—')+'</td><td>'+escapeHtml(x.mod||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td></tr>').join('')||'<tr><td colspan="12">Nenhuma inscrição registrada ainda.</td></tr>';
+async function renderAdmin(){
+ const body=document.getElementById('tbody');
+ body.innerHTML='<tr><td colspan="12">Carregando inscrições...</td></tr>';
+ const {data:a,error}=await supabaseClient.from('inscricoes').select('*').order('created_at',{ascending:false}).limit(1000);
+ if(error){body.innerHTML='<tr><td colspan="12">Erro ao consultar inscrições: '+escapeHtml(error.message)+'</td></tr>';return;}
+ const rows=a||[];
+ const n=k=>rows.filter(x=>x.tipo_curso===k).length;
+ document.getElementById('mTotal').textContent=rows.length;
+ document.getElementById('mSeg').textContent=n('Segunda Licenciatura');
+ document.getElementById('mPed').textContent=n('Formação Pedagógica');
+ document.getElementById('mOk').textContent=rows.filter(x=>['Afinidade identificada','Apto na regra inicial','Inscrição pronta para conclusão','Inscrição de Graduação liberada'].includes(x.status)).length;
+ document.getElementById('mNo').textContent=rows.filter(x=>x.status==='Sem afinidade').length;
+ document.getElementById('mImp').textContent=rows.filter(x=>x.status==='Impedimento regulatório').length;
+ document.getElementById('mWait').textContent=rows.filter(x=>x.status==='Aguardando análise').length;
+ document.getElementById('mOther').textContent=rows.filter(x=>!['Segunda Licenciatura','Formação Pedagógica'].includes(x.tipo_curso)).length;
+ body.innerHTML=rows.map(x=>'<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.curso_origem||'—')+'</td><td>'+escapeHtml(x.modalidade||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')||String(x.status||'').includes('liberada')||String(x.status||'').includes('conclusão')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td></tr>').join('')||'<tr><td colspan="12">Nenhuma inscrição registrada na base central.</td></tr>';
 }
 function resetForm(){location.reload()}
 function showCategory(category,button){
