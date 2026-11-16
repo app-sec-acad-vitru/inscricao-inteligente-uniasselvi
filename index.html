@@ -521,6 +521,8 @@ function analisar(){
  out.innerHTML='<div class="result '+classe+'"><h3>'+titulo+'</h3>'+body+'<p style="font-size:12px;color:#6b7280"><b>Status:</b> '+status+'</p></div>';
  if(classe==='ok'){
    out.innerHTML += '<button class="cta" style="max-width:300px" onclick="proximaEtapa()">➡️ Continuar para a próxima etapa</button>';
+ } else if(status==='Impedimento regulatório'){
+   out.innerHTML += '<button class="secondary" style="margin-top:12px" onclick="voltarCursoEtapa()">Voltar para dados do curso</button>';
  }
  if(classe!=='ok') saveRecord({curso,orig,mod,status,t});
 }
