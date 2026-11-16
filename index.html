@@ -723,7 +723,7 @@ async function saveRecord(r){
  localStorage.setItem('inscricoes_demo',JSON.stringify(local));
  return data;
 }
-async async function openAdmin(){
+async function openAdmin(){
  document.getElementById('admin').classList.add('show');
  document.getElementById('admin').scrollIntoView({behavior:'smooth'});
  const {data:{session}}=await supabaseClient.auth.getSession();
