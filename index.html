@@ -436,6 +436,13 @@ function continuarCursoEtapa(){
  const t=document.getElementById('tipo').value,mod=document.getElementById('modalidade').value,curso=document.getElementById('curso').value;
  const out=document.getElementById('resultado');
  if(!t||!mod||!curso){out.innerHTML='<div class="result info"><h3>🙂 Complete os dados do curso</h3><p>Selecione o tipo, a modalidade e o curso desejado.</p></div>';return;}
+ if(t==='Graduação'){
+  out.innerHTML='';
+  document.getElementById('inscricao').classList.add('hidden');
+  document.getElementById('nextPage').classList.remove('hidden');
+  concluirResultado();
+  return;
+ }
  const originBox=document.getElementById('originBox');
  if(!originBox.classList.contains('hidden')){
   showWizardPanel('originStepPanel');setWizardStep(3);
@@ -650,11 +657,18 @@ function concluirResultado(){
  const curso=document.getElementById('curso').value;
  const orig=document.getElementById('origem').value;
  const mod=document.getElementById('modalidade').value;
- next.querySelector('.steps').innerHTML='<span class="stepbar done">1 • Dados do candidato</span><span class="stepbar done">2 • Curso</span><span class="stepbar done">3 • Formação de origem</span><span class="stepbar done">4 • Documento</span><span class="stepbar active">5 • Resultado</span>';
- document.getElementById('nextTitle').textContent='🎉 Inscrição pronta para conclusão';
- document.getElementById('nextText').textContent='As etapas do protótipo foram concluídas.';
+ if(t==='Graduação'){
+  next.querySelector('.steps').innerHTML='<span class="stepbar done">1 • Dados do candidato</span><span class="stepbar done">2 • Curso</span><span class="stepbar active">3 • Resultado</span>';
+  document.getElementById('nextTitle').textContent='🎉 Inscrição pronta para conclusão';
+  document.getElementById('nextText').textContent='A validação para Graduação é automática. Não é necessária análise de afinidade nem envio de documento nesta etapa.';
+ }else{
+  next.querySelector('.steps').innerHTML='<span class="stepbar done">1 • Dados do candidato</span><span class="stepbar done">2 • Curso</span><span class="stepbar done">3 • Formação de origem</span><span class="stepbar done">4 • Documento</span><span class="stepbar active">5 • Resultado</span>';
+  document.getElementById('nextTitle').textContent='🎉 Inscrição pronta para conclusão';
+  document.getElementById('nextText').textContent='As etapas do protótipo foram concluídas.';
+ }
  const candidato=getCandidateData();
- document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Candidato:</b> '+escapeHtml(candidato.nome)+'</p><p><b>CPF:</b> '+escapeHtml(candidato.cpf)+'</p><p><b>E-mail:</b> '+escapeHtml(candidato.email)+'</p><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Origem:</b> '+escapeHtml(orig||'Não se aplica')+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> conferido automaticamente nesta demonstração, quando aplicável.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica.</p></div>';
+ const documentoResumo=t==='Graduação'?'não solicitado nesta etapa':'conferido automaticamente nesta demonstração, quando aplicável';
+ document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Candidato:</b> '+escapeHtml(candidato.nome)+'</p><p><b>CPF:</b> '+escapeHtml(candidato.cpf)+'</p><p><b>E-mail:</b> '+escapeHtml(candidato.email)+'</p><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Origem:</b> '+escapeHtml(orig||'Não se aplica')+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> '+documentoResumo+'.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica, quando aplicável.</p></div>';
  if(!activeInscriptionSaved) saveRecord({curso,orig,mod,status:t==='Graduação'?'Inscrição de Graduação liberada':'Inscrição pronta para conclusão',t});
  const actions=next.querySelector('.actions'); actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="novaInscricao()">Nova inscrição</button>';
  next.scrollIntoView({behavior:'smooth'});
