@@ -66,7 +66,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <p class="muted">Selecione o tipo de curso, a modalidade e o curso desejado.</p>
     <div class="row">
       <div><label>Tipo de Curso *</label><select id="tipo" onchange="updateCourses()"><option value="">Selecione</option><option>Graduação</option><option>Segunda Licenciatura</option><option>Formação Pedagógica</option><option>Pós-Graduação</option><option>Profissionalizante</option></select></div>
-      <div><label>Modalidade *</label><select id="modalidade"><option value="">Selecione</option><option>EAD</option><option>Semipresencial</option><option>Presencial</option></select></div>
+      <div><label>Modalidade *</label><select id="modalidade"><option value="">Selecione</option><option value="EAD">EAD</option><option value="Semipresencial">Semipresencial</option><option value="Presencial">Presencial</option></select></div>
     </div>
     <label>Curso *</label>
     <select id="curso" onchange="courseChanged()"><option value="">Selecione primeiro o tipo de curso</option></select>
@@ -151,7 +151,16 @@ function prefill(tipo){document.getElementById('tipo').value=tipo;updateCourses(
 function updateCourses(){
  const t=document.getElementById('tipo').value,c=document.getElementById('curso');c.innerHTML='<option value="">Selecione</option>';
  (courses[t]||[]).forEach(x=>{let o=document.createElement('option');o.textContent=x;o.value=x;c.appendChild(o)});
+ updateModalities();
  document.getElementById('originBox').classList.add('hidden');document.getElementById('resultado').innerHTML='';
+}
+function updateModalities(){
+ const t=document.getElementById('tipo').value;
+ const m=document.getElementById('modalidade');
+ const special=t==='Segunda Licenciatura'||t==='Formação Pedagógica';
+ const options=special?['EAD']:['EAD','Semipresencial','Presencial'];
+ m.innerHTML='<option value="">Selecione</option>'+options.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
+ m.value='';
 }
 function courseChanged(){
  const t=document.getElementById('tipo').value;
