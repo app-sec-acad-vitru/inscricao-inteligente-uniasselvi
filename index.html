@@ -144,6 +144,8 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
       <div class="metric"><small>Outros cursos</small><strong id="mOther">0</strong></div>
     </div>
     <h3>Inscrições registradas neste navegador</h3>
+    <p class="muted">Até a conexão com o banco central, estes registros existem somente neste navegador.</p>
+    <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar inscrições deste navegador (JSON)</button>
     <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
     <button class="secondary" style="margin-top:18px" onclick="closeAdmin()">Voltar à inscrição</button>
   </div>
@@ -690,6 +692,17 @@ function openAdmin(){
  document.getElementById('admin').classList.add('show');document.getElementById('admin').scrollIntoView({behavior:'smooth'});renderAdmin();
 }
 function closeAdmin(){document.getElementById('admin').classList.remove('show');document.getElementById('inscricao').scrollIntoView({behavior:'smooth'})}
+function exportLocalRegistrations(){
+ const records=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
+ if(!records.length){alert('Não há inscrições salvas neste navegador para exportar.');return;}
+ const payload={exported_at:new Date().toISOString(),source:'localStorage_inscricoes_demo',count:records.length,inscricoes:records};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ const link=document.createElement('a');
+ link.href=url;link.download='inscricoes-locais-'+new Date().toISOString().slice(0,10)+'.json';
+ document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+ alert(records.length+' inscrição(ões) exportada(s). Guarde o arquivo em local seguro; ele contém dados pessoais.');
+}
 function renderAdmin(){
  const a=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
  const n=k=>a.filter(x=>x.t===k).length;
