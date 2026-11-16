@@ -621,10 +621,11 @@ function concluirResultado(){
  const curso=document.getElementById('curso').value;
  const orig=document.getElementById('origem').value;
  const mod=document.getElementById('modalidade').value;
- next.querySelector('.steps').innerHTML='<span class="stepbar">1 • Curso</span><span class="stepbar">2 • Formação de origem</span><span class="stepbar">3 • Documento</span><span class="stepbar active">4 • Resultado</span>';
+ next.querySelector('.steps').innerHTML='<span class="stepbar done">1 • Dados do candidato</span><span class="stepbar done">2 • Curso</span><span class="stepbar done">3 • Formação de origem</span><span class="stepbar done">4 • Documento</span><span class="stepbar active">5 • Resultado</span>';
  document.getElementById('nextTitle').textContent='🎉 Inscrição pronta para conclusão';
  document.getElementById('nextText').textContent='As etapas do protótipo foram concluídas.';
- document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Origem:</b> '+escapeHtml(orig)+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> conferido automaticamente nesta demonstração.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica.</p></div>';
+ const candidato=getCandidateData();
+ document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Candidato:</b> '+escapeHtml(candidato.nome)+'</p><p><b>CPF:</b> '+escapeHtml(candidato.cpf)+'</p><p><b>E-mail:</b> '+escapeHtml(candidato.email)+'</p><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Origem:</b> '+escapeHtml(orig||'Não se aplica')+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> conferido automaticamente nesta demonstração, quando aplicável.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica.</p></div>';
  const a=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
  const exists=a.some(x=>x.curso===curso && x.orig===orig && x.mod===mod);
  if(!exists) saveRecord({curso,orig,mod,status:'Inscrição pronta para conclusão',t});
@@ -634,6 +635,7 @@ function concluirResultado(){
 function voltarEtapa1(){
  document.getElementById('nextPage').classList.add('hidden');
  document.getElementById('inscricao').classList.remove('hidden');
+ showWizardPanel('originStepPanel');setWizardStep(3);
  document.getElementById('inscricao').scrollIntoView({behavior:'smooth'});
 }
 function novaInscricao(){location.reload()}
