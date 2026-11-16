@@ -398,11 +398,11 @@ function validateCandidateData(){
   document.getElementById(({nome:'candNome',cpf:'candCpf',endereco:'candEndereco',numero:'candNumero',cep:'candCep',celular:'candCelular',email:'candEmail'})[missing[0]]).focus();
   return false;
  }
- if(data.cpf.replace(/\\D/g,'').length!==11){out.innerHTML='<div class="result info"><h3>Confira o CPF</h3><p>Informe um CPF com 11 números.</p></div>';document.getElementById('candCpf').focus();return false;}
- if(data.cep.replace(/\\D/g,'').length!==8){out.innerHTML='<div class="result info"><h3>Confira o CEP</h3><p>Informe um CEP com 8 números.</p></div>';document.getElementById('candCep').focus();return false;}
- const phone=data.celular.replace(/\\D/g,'');
+ if(data.cpf.replace(/\D/g,'').length!==11){out.innerHTML='<div class="result info"><h3>Confira o CPF</h3><p>Informe um CPF com 11 números.</p></div>';document.getElementById('candCpf').focus();return false;}
+ if(data.cep.replace(/\D/g,'').length!==8){out.innerHTML='<div class="result info"><h3>Confira o CEP</h3><p>Informe um CEP com 8 números.</p></div>';document.getElementById('candCep').focus();return false;}
+ const phone=data.celular.replace(/\D/g,'');
  if(phone.length<10||phone.length>11){out.innerHTML='<div class="result info"><h3>Confira o celular</h3><p>Informe um telefone com DDD e 10 ou 11 números.</p></div>';document.getElementById('candCelular').focus();return false;}
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(data.email)){out.innerHTML='<div class="result info"><h3>Confira o e-mail</h3><p>Informe um endereço de e-mail válido.</p></div>';document.getElementById('candEmail').focus();return false;}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)){out.innerHTML='<div class="result info"><h3>Confira o e-mail</h3><p>Informe um endereço de e-mail válido.</p></div>';document.getElementById('candEmail').focus();return false;}
  return true;
 }
 function continuarDadosCandidato(){
@@ -510,6 +510,7 @@ function proximaEtapa(){
  const next=document.getElementById('nextPage');
  const content=document.getElementById('nextContent');
  const stepDoc=document.getElementById('stepDoc');
+ setWizardStep(4);
  next.classList.remove('hidden');
  document.getElementById('inscricao').classList.add('hidden');
  next.scrollIntoView({behavior:'smooth'});
