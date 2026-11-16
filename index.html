@@ -303,10 +303,16 @@ function analisar(){
       body='<p>A formação de origem <b>'+orig+'</b> consta na tabela de afinidade para o curso <b>'+curso+'</b>.</p><p><b>De/para:</b> '+orig+' → '+curso+'.</p><p>Agora você pode avançar para anexar o diploma ou histórico acadêmico para a conferência documental.</p>';
    }else{
       classe='no';status='Sem afinidade';titulo='🟠 Não identificamos afinidade para esta combinação';
-      const sugestoes=Object.entries(afinidades).filter(([k,v])=>v.map(normalize).includes(normalize(orig))).map(([k])=>k);
-      body='<p>A formação de origem <b>'+orig+'</b> não consta na tabela de afinidade cadastrada para <b>'+curso+'</b>.</p>';
-      if(sugestoes.length) body+='<p><b>Cursos que aparecem associados à sua formação na tabela atual:</b></p><ul>'+sugestoes.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
-      else body+='<p>Não há outra correspondência cadastrada para essa formação na tabela atual.</p>';
+      const sugestoes=Object.entries(afinidades)
+        .filter(([destino,origens])=>origens.some(item=>normalize(item)===normalize(orig)))
+        .map(([destino])=>destino);
+      const destinosCadastrados=Object.keys(afinidades);
+      body='<p>A formação de origem <b>'+orig+'</b> não possui correspondência na tabela de afinidade para o curso pretendido <b>'+curso+'</b>.</p>';
+      if(sugestoes.length){
+        body+='<div style="margin-top:14px;padding:15px;background:#fff;border:1px solid #f2c5c5;border-radius:4px"><b>💡 Sugestões encontradas na tabela para sua formação de origem</b><p>Estes cursos de destino estão associados a <b>'+orig+'</b>:</p><ul>'+sugestoes.map(x=>'<li><b>'+x+'</b></li>').join('')+'</ul></div>';
+      }else{
+        body+='<div style="margin-top:14px;padding:15px;background:#fff;border:1px solid #f2c5c5;border-radius:4px"><b>💡 Consulte outras opções cadastradas na tabela</b><p>A tabela demonstrativa ainda não possui um curso de destino associado a <b>'+orig+'</b>. Para ajudar na consulta, estes são os cursos de destino atualmente cadastrados:</p><ul>'+destinosCadastrados.map(x=>'<li>'+x+'</li>').join('')+'</ul><p style="font-size:12px;color:#8a4b08"><b>Atenção:</b> a exibição dessas opções não significa que exista afinidade confirmada com sua formação. A combinação precisa constar expressamente na tabela institucional validada.</p></div>';
+      }
       body+='<p>O envio do documento ficará disponível somente quando houver afinidade identificada.</p>';
    }
  }
