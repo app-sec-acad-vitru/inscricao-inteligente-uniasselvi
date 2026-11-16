@@ -724,10 +724,34 @@ async function saveRecord(r){
  return data;
 }
 async function openAdmin(){
- document.getElementById('admin').classList.add('show');
- document.getElementById('admin').scrollIntoView({behavior:'smooth'});
- const {data:{session}}=await supabaseClient.auth.getSession();
- if(session){await renderAdmin();}else{document.getElementById('adminLogin').classList.remove('hidden');document.getElementById('adminData').classList.add('hidden');}
+ const section=document.getElementById('admin');
+ const login=document.getElementById('adminLogin');
+ const dataPanel=document.getElementById('adminData');
+ const message=document.getElementById('adminLoginMessage');
+ section.classList.add('show');
+ section.scrollIntoView({behavior:'smooth'});
+ login.classList.remove('hidden');
+ dataPanel.classList.add('hidden');
+ if(message) message.textContent='Verificando acesso...';
+ try{
+  const {data:{session},error:sessionError}=await supabaseClient.auth.getSession();
+  if(sessionError) throw sessionError;
+  if(session){
+   const {data:role,error:roleError}=await supabaseClient.from('admin_users').select('user_id').eq('user_id',session.user.id).maybeSingle();
+   if(roleError) throw roleError;
+   if(role){
+    login.classList.add('hidden');
+    dataPanel.classList.remove('hidden');
+    await renderAdmin();
+    return;
+   }
+   await supabaseClient.auth.signOut();
+  }
+  if(message) message.textContent='Acesso restrito. Entre com seu e-mail e senha de administrador.';
+ }catch(error){
+  console.error('Falha ao verificar acesso administrativo:',error);
+  if(message) message.textContent='Não foi possível verificar seu acesso. Tente novamente. Detalhe: '+(error.message||'erro de conexão');
+ }
 }
 async function loginAdmin(){
  const email=document.getElementById('adminEmail').value.trim();
