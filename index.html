@@ -807,11 +807,11 @@ async function renderAdmin(){
  document.getElementById('mTotal').textContent=rows.length;
  document.getElementById('mSeg').textContent=n('Segunda Licenciatura');
  document.getElementById('mPed').textContent=n('Formação Pedagógica');
- document.getElementById('mOk').textContent=rows.filter(x=>['Afinidade identificada','Apto na regra inicial','Inscrição pronta para conclusão','Inscrição de Graduação liberada'].includes(x.status)).length;
+ document.getElementById('mOk').textContent=rows.filter(x=>['Segunda Licenciatura','Formação Pedagógica'].includes(x.tipo_curso)&&['Afinidade identificada','Apto na regra inicial','Inscrição pronta para conclusão'].includes(x.status)).length;
  document.getElementById('mNo').textContent=rows.filter(x=>x.status==='Sem afinidade').length;
  document.getElementById('mImp').textContent=rows.filter(x=>x.status==='Impedimento regulatório').length;
  document.getElementById('mWait').textContent=rows.filter(x=>x.status==='Aguardando análise').length;
- document.getElementById('mOther').textContent=rows.filter(x=>!['Segunda Licenciatura','Formação Pedagógica'].includes(x.tipo_curso)).length;
+ document.getElementById('mOther').textContent=rows.filter(x=>!['Segunda Licenciatura','Formação Pedagógica','Graduação'].includes(x.tipo_curso)).length;
  body.innerHTML=rows.map(x=>'<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.curso_origem||'—')+'</td><td>'+escapeHtml(x.modalidade||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')||String(x.status||'').includes('liberada')||String(x.status||'').includes('conclusão')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td></tr>').join('')||'<tr><td colspan="12">Nenhuma inscrição registrada na base central.</td></tr>';
 }
 function resetForm(){location.reload()}
