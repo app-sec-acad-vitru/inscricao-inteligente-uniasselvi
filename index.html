@@ -275,8 +275,8 @@ function courseChanged(){
  document.getElementById('resultado').innerHTML='';
 }
 function originChanged(){
- const t=document.getElementById('tipo').value;
- document.getElementById('docBox').classList.toggle('hidden',t!=='Formação Pedagógica');
+ // O documento será solicitado somente depois da análise de/para da tabela de afinidade.
+ document.getElementById('docBox').classList.add('hidden');
 }
 function normalize(s){return (s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase()}
 function analisar(){
@@ -297,19 +297,17 @@ function analisar(){
      body='<p>Seu curso de origem foi informado como <b>'+orig+'</b>. Nesta versão do protótipo, não foi identificado o impedimento específico de Pedagogia.</p><p>Você pode avançar para a próxima etapa da inscrição. A conferência documental final deverá validar a formação apresentada.</p>';
    }
  } else if(t==='Formação Pedagógica'){
-   if(!orig){out.innerHTML='<div class="result info"><h3>🙂 Falta sua formação de origem</h3><p>Informe o curso que você concluiu e envie o documento comprobatório.</p></div>';return}
-   const file=document.getElementById('documento').files[0];
-   if(!file){out.innerHTML='<div class="result info"><h3>📎 Só falta o documento</h3><p>Envie seu diploma ou histórico para continuar a análise.</p></div>';return}
    const lista=afinidades[curso]||[];
    if(lista.map(normalize).includes(normalize(orig))){
-      classe='ok';status='Afinidade identificada';titulo='🟢 Beleza! Encontramos afinidade';
-      body='<p>O curso de origem <b>'+orig+'</b> aparece na base de afinidades para <b>'+curso+'</b>.</p><p>Você pode continuar para a próxima etapa. No ambiente produtivo, esta conferência será vinculada ao documento analisado e à versão vigente da tabela.</p>';
+      classe='ok';status='Afinidade identificada';titulo='🟢 Afinidade identificada!';
+      body='<p>A formação de origem <b>'+orig+'</b> consta na tabela de afinidade para o curso <b>'+curso+'</b>.</p><p><b>De/para:</b> '+orig+' → '+curso+'.</p><p>Agora você pode avançar para anexar o diploma ou histórico acadêmico para a conferência documental.</p>';
    }else{
-      classe='no';status='Sem afinidade';titulo='🟠 Esse curso não tem afinidade';
+      classe='no';status='Sem afinidade';titulo='🟠 Não identificamos afinidade para esta combinação';
       const sugestoes=Object.entries(afinidades).filter(([k,v])=>v.map(normalize).includes(normalize(orig))).map(([k])=>k);
-      body='<p>Não encontramos <b>'+orig+'</b> na lista de afinidades para <b>'+curso+'</b>.</p>';
-      if(sugestoes.length) body+='<p><b>Mas olha só:</b> pela base demonstrativa, você pode verificar estas opções:</p><ul>'+sugestoes.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
-      else body+='<p>Não encontramos outra opção automática na base demonstrativa para essa formação de origem.</p>';
+      body='<p>A formação de origem <b>'+orig+'</b> não consta na tabela de afinidade cadastrada para <b>'+curso+'</b>.</p>';
+      if(sugestoes.length) body+='<p><b>Cursos que aparecem associados à sua formação na tabela atual:</b></p><ul>'+sugestoes.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+      else body+='<p>Não há outra correspondência cadastrada para essa formação na tabela atual.</p>';
+      body+='<p>O envio do documento ficará disponível somente quando houver afinidade identificada.</p>';
    }
  }
  out.innerHTML='<div class="result '+classe+'"><h3>'+titulo+'</h3>'+body+'<p style="font-size:12px;color:#6b7280"><b>Status:</b> '+status+'</p></div>';
@@ -328,11 +326,11 @@ function proximaEtapa(){
  next.classList.remove('hidden');
  document.getElementById('inscricao').classList.add('hidden');
  next.scrollIntoView({behavior:'smooth'});
- if(t==='Segunda Licenciatura'){
+ if(t==='Segunda Licenciatura'||t==='Formação Pedagógica'){
    stepDoc.classList.add('active');
-   document.getElementById('nextTitle').textContent='📄 Conferência documental';
-   document.getElementById('nextText').textContent='Você avançou da análise inicial. Agora precisamos do documento que comprova sua formação de origem.';
-   content.innerHTML='<div class="result info"><h3>Documento da formação de origem</h3><p>Envie seu diploma ou histórico da licenciatura informada: <b>'+orig+'</b>.</p><label>Documento comprobatório *</label><input id="documentoNext" type="file" accept=".pdf,.jpg,.jpeg,.png"><p class="muted" style="font-size:12px">No protótipo, o arquivo apenas simula a conferência documental. A leitura real por OCR/IA será integrada posteriormente.</p></div>';
+   document.getElementById('nextTitle').textContent='📄 Agora, anexe seu documento';
+   document.getElementById('nextText').textContent='A primeira etapa foi concluída. Envie o documento que comprova sua formação de origem para seguirmos com a conferência.';
+   content.innerHTML='<div class="result info"><h3>Documento da formação de origem</h3><p>Curso de origem informado: <b>'+orig+'</b>.</p><p>Curso pretendido: <b>'+curso+'</b>.</p><label>Diploma ou histórico acadêmico *</label><input id="documentoNext" type="file" accept=".pdf,.jpg,.jpeg,.png"><p class="muted" style="font-size:12px">Envie um arquivo legível em PDF ou imagem. A leitura automática é demonstrativa e não substitui a validação acadêmica oficial.</p></div>';
  }else{
    stepDoc.classList.add('active');
    document.getElementById('nextTitle').textContent='🔎 Conferência final';
@@ -343,8 +341,8 @@ function proximaEtapa(){
 async function finalizarEtapa(){
  const t=document.getElementById('tipo').value;
  const f=document.getElementById('documentoNext');
- if(t==='Segunda Licenciatura' && (!f || !f.files.length)){ alert('Envie o documento da formação de origem para continuar.'); return; }
- if(t==='Segunda Licenciatura'){
+ if(['Segunda Licenciatura','Formação Pedagógica'].includes(t) && (!f || !f.files.length)){ alert('Envie o diploma ou histórico acadêmico da formação de origem para continuar.'); return; }
+ if(['Segunda Licenciatura','Formação Pedagógica'].includes(t)){
    await validarDocumento(f.files[0]);
    return;
  }
