@@ -353,7 +353,7 @@ function analisar(){
  const tipoKey=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
  const origemKey=String(orig||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
  if(tipoKey.includes('segunda licenciatura') && origemKey.includes('pedagogia')){
-   const bloqueio='<div class="result no"><h3>⚠️ Segunda Licenciatura não permitida para formação em Pedagogia</h3><p>Identificamos que sua formação de origem é <b>Pedagogia</b>.</p><p>A Resolução CNE/CP nº 4/2024, art. 16, § 8º, excepciona a licenciatura em Pedagogia da possibilidade de ingresso em Segunda Licenciatura. O Parecer CNE/CP nº 5/2025 esclarece que o(a) pedagogo(a) não pode cursar Segunda Licenciatura em outra área.</p><p><b>Por esse motivo, a inscrição não pode prosseguir nesta modalidade.</b> Consulte outras opções de formação disponíveis.</p><p style="font-size:12px;color:#6b7280"><b>Status:</b> Impedimento regulatório</p></div>';
+   const bloqueio='<div class="result no"><h3>⚠️ Segunda Licenciatura não permitida para formação em Pedagogia</h3><p>Identificamos que sua formação de origem é <b>Pedagogia</b>.</p><p>A Resolução CNE/CP nº 4/2024, art. 16, § 8º, excepciona a licenciatura em Pedagogia da possibilidade de ingresso em Segunda Licenciatura. O Parecer CNE/CP nº 5/2025 esclarece que o(a) pedagogo(a) não pode cursar Segunda Licenciatura em outra área.</p><p><b>Por esse motivo, a inscrição não pode prosseguir nesta modalidade.</b> Você poderá se matricular no curso de Licenciatura Plena pretendido.</p><p style="font-size:12px;color:#6b7280"><b>Status:</b> Impedimento regulatório</p></div>';
    out.innerHTML=bloqueio;
    saveRecord({curso,orig,mod,status:'Impedimento regulatório',t});
    return;
