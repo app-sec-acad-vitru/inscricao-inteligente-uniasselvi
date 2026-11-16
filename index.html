@@ -226,13 +226,72 @@ const originCourses={
 // Base demonstrativa derivada da lógica institucional trabalhada no projeto.
 // A versão produtiva deverá carregar a tabela oficial estruturada.
 const afinidades={
- "Formação Pedagógica em Matemática":["Engenharia Civil","Matemática","Física","Química"],
- "Formação Pedagógica em Física":["Engenharia Civil","Física","Matemática","Química"],
- "Formação Pedagógica em Química":["Engenharia Civil","Química","Física","Matemática"],
- "Formação Pedagógica em Pedagogia":["Normal Superior","Educação Especial","Psicopedagogia"],
- "Formação Pedagógica em História":["Filosofia","História","Geografia","Sociologia","Antropologia","Ciência da Religião"],
- "Formação Pedagógica em Letras":["Letras","Filosofia","História","Geografia","Sociologia"],
+ "Formação Pedagógica em Artes Visuais":[
+  "Acompanhamento do Transtorno do Espectro Autista","Arquitetura","Artes","Dança","Moda","Música",
+  "Psicomotricidade","Psicopedagogia","Publicidade e Propaganda","Teatro"
+ ],
+ "Formação Pedagógica em Ciências Biológicas":[
+  "Biomedicina","Ciências Biológicas","Educação Física","Enfermagem","Engenharia Agronômica ou Agronomia",
+  "Engenharia Ambiental","Engenharia Florestal","Farmácia","Fisioterapia","Nutrição","Oceanografia"
+ ],
+ "Formação Pedagógica em Educação Especial":[
+  "Artes","Educação Física","Letras – Libras","Pedagogia","Psicomotricidade","Psicopedagogia","Terapia Ocupacional"
+ ],
+ "Formação Pedagógica em Educação Física":["Educação Física"],
+ "Formação Pedagógica em Filosofia":[
+  "Antropologia","Ciência da Religião","Filosofia","Geografia","História","Sociologia"
+ ],
+ "Formação Pedagógica em Física":[
+  "Engenharia Civil","Engenharia Elétrica","Engenharia Mecânica","Física"
+ ],
+ "Formação Pedagógica em Geografia":[
+  "Antropologia","Geografia","História","Sociologia"
+ ],
+ "Formação Pedagógica em História":[
+  "Antropologia","Ciência da Religião","Geografia","História","Sociologia","Teologia"
+ ],
+ "Formação Pedagógica em Informática":[
+  "Computação","Engenharia da Computação","Engenharia de Software","Informática","Sistemas de Informação"
+ ],
+ "Formação Pedagógica em Letras – Espanhol":[
+  "Letras (Espanhol ou em outras línguas)"
+ ],
+ "Formação Pedagógica em Letras – Inglês":[
+  "Letras (Inglês ou em outras línguas)","Secretariado Executivo Bilíngue","Tradução"
+ ],
+ "Formação Pedagógica em Letras – Português":[
+  "Jornalismo","Letras (Português ou em outras línguas)","Linguística","Publicidade e Propaganda",
+  "Secretariado Executivo","Secretariado Executivo Bilíngue","Tradução"
+ ],
+ "Formação Pedagógica em Letras Libras":[
+  "Letras – Alemão","Letras – Espanhol","Letras – Inglês","Letras – Português","Letras Libras",
+  "Tradução e Interpretação em Libras"
+ ],
+ "Formação Pedagógica em Matemática":[
+  "Engenharia Civil","Engenharia Elétrica","Engenharia Mecânica","Matemática"
+ ],
+ "Formação Pedagógica em Química":[
+  "Bioquímica","Engenharia Química","Farmácia","Física","Química","Química Forense","Química Industrial"
+ ],
+ "Formação Pedagógica em Sociologia":[
+  "Antropologia","Ciência Política","Ciências Sociais","Economia","Filosofia","Geografia","História",
+  "Relações Internacionais","Serviço Social","Sociologia"
+ ]
 };
+function normalizeAffinity(value){
+ let v=normalize(value).replace(/[–—-]/g,' ').replace(/\s+/g,' ').trim();
+ v=v.replace(/^bacharelado em /,'').replace(/^licenciatura em /,'');
+ if(v==='arquitetura e urbanismo') return 'arquitetura';
+ if(v==='engenharia agronomica ou agronomia') return 'agronomia';
+ if(v==='engenharia ambiental') return 'engenharia ambiental e sanitaria';
+ return v;
+}
+function affinityDestinations(origin){
+ const key=normalizeAffinity(origin);
+ return Object.entries(afinidades)
+  .filter(([destino,origens])=>origens.some(item=>normalizeAffinity(item)===key))
+  .map(([destino])=>destino);
+}
 
 function prefill(tipo){document.getElementById('tipo').value=tipo;updateCourses();document.getElementById('inscricao').scrollIntoView({behavior:'smooth'})}
 function updateCourses(){
@@ -256,7 +315,16 @@ function updateCourseOptions(){
 function updateOriginCourses(){
  const t=document.getElementById('tipo').value;
  const origin=document.getElementById('origem');
- const list=originCourses[t]||[];
+ let list=originCourses[t]||[];
+ if(t==='Formação Pedagógica'){
+  const matrixOrigins=Object.values(afinidades).flat();
+  const seen=new Set();
+  list=[...list,...matrixOrigins].filter(item=>{
+   const key=normalizeAffinity(item);
+   if(seen.has(key)) return false;
+   seen.add(key);return true;
+  });
+ }
  origin.innerHTML='<option value="">Selecione sua formação</option>'+list.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
  document.getElementById('docBox').classList.add('hidden');
 }
@@ -291,29 +359,27 @@ function analisar(){
    if(!orig){out.innerHTML='<div class="result info"><h3>🙂 Falta sua formação de origem</h3><p>Para segunda licenciatura, precisamos saber qual é o seu curso de licenciatura de origem.</p></div>';return}
    if(normalize(orig)==='pedagogia'){
      classe='no';status='Impedimento regulatório';titulo='⚠️ Esse caminho não está disponível';
-     body='<p>Identificamos que sua formação de origem é <b>Pedagogia</b>. Neste protótipo, essa origem é tratada como impedimento para ingresso em Segunda Licenciatura.</p><p>Para evitar que você avance em uma formação que possa gerar problema depois, a inscrição fica bloqueada nesta etapa.</p><p><b>Fundamentação:</b> regra regulatória trabalhada no projeto, com referência à Resolução CNE/CP nº 4/2024 e normas correlatas.</p>';
+     body='<p>Identificamos que sua formação de origem é <b>Pedagogia</b>.</p><p><b>Não é possível ingressar em um curso de Segunda Licenciatura tendo Pedagogia como formação de origem.</b> A Resolução CNE/CP nº 4, de 29 de maio de 2024, estabelece no art. 16, § 8º, que os cursos de Segunda Licenciatura podem ser ofertados a portadores de diplomas de licenciatura, independentemente da área, <b>com exceção da licenciatura em Pedagogia</b>.</p><p>O Parecer CNE/CP nº 5/2025 esclarece expressamente que não é possível o(a) pedagogo(a) cursar Segunda Licenciatura em outra área. Por esse motivo, não será possível continuar com esta inscrição.</p><p><b>Orientação:</b> consulte as demais modalidades e opções de formação disponíveis na instituição.</p><p><b>Base normativa:</b> Resolução CNE/CP nº 4/2024, art. 16, § 8º; Parecer CNE/CP nº 5/2025.</p>';
    } else {
      classe='ok';status='Apto na regra inicial';titulo='🟢 Tudo certo para continuar';
      body='<p>Seu curso de origem foi informado como <b>'+orig+'</b>. Nesta versão do protótipo, não foi identificado o impedimento específico de Pedagogia.</p><p>Você pode avançar para a próxima etapa da inscrição. A conferência documental final deverá validar a formação apresentada.</p>';
    }
  } else if(t==='Formação Pedagógica'){
    const lista=afinidades[curso]||[];
-   if(lista.map(normalize).includes(normalize(orig))){
+   const temAfinidade=lista.some(item=>normalizeAffinity(item)===normalizeAffinity(orig));
+   if(temAfinidade){
       classe='ok';status='Afinidade identificada';titulo='🟢 Afinidade identificada!';
-      body='<p>A formação de origem <b>'+orig+'</b> consta na tabela de afinidade para o curso <b>'+curso+'</b>.</p><p><b>De/para:</b> '+orig+' → '+curso+'.</p><p>Agora você pode avançar para anexar o diploma ou histórico acadêmico para a conferência documental.</p>';
+      body='<p>A formação de origem <b>'+orig+'</b> consta na tabela de afinidades para o curso <b>'+curso+'</b>.</p><p><b>De/para confirmado:</b> '+orig+' → '+curso+'.</p><p>Você pode avançar para anexar o diploma ou histórico acadêmico para a conferência documental.</p>';
    }else{
-      classe='no';status='Sem afinidade';titulo='🟠 Não identificamos afinidade para esta combinação';
-      const sugestoes=Object.entries(afinidades)
-        .filter(([destino,origens])=>origens.some(item=>normalize(item)===normalize(orig)))
-        .map(([destino])=>destino);
-      const destinosCadastrados=Object.keys(afinidades);
-      body='<p>A formação de origem <b>'+orig+'</b> não possui correspondência na tabela de afinidade para o curso pretendido <b>'+curso+'</b>.</p>';
+      classe='no';status='Sem afinidade para o curso selecionado';titulo='🟠 Esta combinação não consta na tabela de afinidades';
+      const sugestoes=affinityDestinations(orig);
+      body='<p>A formação de origem <b>'+orig+'</b> não possui correspondência para o curso pretendido <b>'+curso+'</b>.</p>';
       if(sugestoes.length){
-        body+='<div style="margin-top:14px;padding:15px;background:#fff;border:1px solid #f2c5c5;border-radius:4px"><b>💡 Sugestões encontradas na tabela para sua formação de origem</b><p>Estes cursos de destino estão associados a <b>'+orig+'</b>:</p><ul>'+sugestoes.map(x=>'<li><b>'+x+'</b></li>').join('')+'</ul></div>';
+        body+='<div style="margin-top:14px;padding:15px;background:#fff;border:1px solid #f2c5c5;border-radius:4px"><b>💡 Cursos que você pode realizar considerando sua formação de origem</b><p>De acordo com a tabela de afinidades cadastrada, <b>'+orig+'</b> possui correspondência com os seguintes cursos:</p><ul>'+sugestoes.map(x=>'<li><b>'+x+'</b></li>').join('')+'</ul><p>Selecione uma das opções acima para refazer a análise de afinidade.</p></div>';
       }else{
-        body+='<div style="margin-top:14px;padding:15px;background:#fff;border:1px solid #f2c5c5;border-radius:4px"><b>💡 Consulte outras opções cadastradas na tabela</b><p>A tabela demonstrativa ainda não possui um curso de destino associado a <b>'+orig+'</b>. Para ajudar na consulta, estes são os cursos de destino atualmente cadastrados:</p><ul>'+destinosCadastrados.map(x=>'<li>'+x+'</li>').join('')+'</ul><p style="font-size:12px;color:#8a4b08"><b>Atenção:</b> a exibição dessas opções não significa que exista afinidade confirmada com sua formação. A combinação precisa constar expressamente na tabela institucional validada.</p></div>';
+        body+='<p>Não encontramos, na tabela de afinidades cadastrada, um curso de Formação Pedagógica associado à sua formação de origem. Neste caso, não é possível recomendar outro curso com base nesta matriz.</p><p>Recomendamos encaminhar sua formação para análise da equipe acadêmica.</p>';
       }
-      body+='<p>O envio do documento ficará disponível somente quando houver afinidade identificada.</p>';
+      body+='<p>O envio do documento ficará disponível somente após a identificação de afinidade para o curso selecionado.</p>';
    }
  }
  out.innerHTML='<div class="result '+classe+'"><h3>'+titulo+'</h3>'+body+'<p style="font-size:12px;color:#6b7280"><b>Status:</b> '+status+'</p></div>';
