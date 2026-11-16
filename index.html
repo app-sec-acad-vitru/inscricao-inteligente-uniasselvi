@@ -66,7 +66,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <p class="muted">Selecione o tipo de curso, a modalidade e o curso desejado.</p>
     <div class="row">
       <div><label>Tipo de Curso *</label><select id="tipo" onchange="updateCourses()"><option value="">Selecione</option><option>Graduação</option><option>Segunda Licenciatura</option><option>Formação Pedagógica</option><option>Pós-Graduação</option><option>Profissionalizante</option></select></div>
-      <div><label>Modalidade *</label><select id="modalidade"><option value="">Selecione</option><option value="EAD">EAD</option><option value="Semipresencial">Semipresencial</option><option value="Presencial">Presencial</option></select></div>
+      <div><label>Modalidade *</label><select id="modalidade" onchange="updateCourseOptions()"><option value="">Selecione</option><option value="EAD">EAD</option><option value="Semipresencial">Semipresencial</option><option value="Presencial">Presencial</option></select></div>
     </div>
     <label>Curso *</label>
     <select id="curso" onchange="courseChanged()"><option value="">Selecione primeiro o tipo de curso</option></select>
@@ -164,6 +164,39 @@ const courses={
  "Profissionalizante":["Profissionalizante em Administração","Profissionalizante em Tecnologia"]
 };
 
+const graduationCourses={
+ "EAD":[
+  "Administração","Administração Pública","Análise e Desenvolvimento de Sistemas","Antropologia","Arquivologia",
+  "Bacharel em Engenharia de Software","Bacharelado em Jornalismo Digital","Bacharelado em Tradução","Banco de Dados",
+  "Biblioteconomia","Ciência da Computação","Ciência da Criatividade","Ciência Política","Ciências Contábeis",
+  "Ciências Econômicas","Comércio Exterior","Comunicação Institucional","Criminologia","Design de Animação",
+  "Design de Interiores","Design De Moda","Design de Produto","Design Digital e User Experience","Design Gráfico",
+  "Despachante Documentalista","Enfermagem","Engenharia de Dados","Escrita Criativa","Fotografia","Gastronomia",
+  "Gestão Comercial","Gestão da Inovação","Gestão da Produção Industrial","Gestão da Qualidade",
+  "Gestão de Cooperativas","Gestão de Farmácia","Gestão de Investimentos e Mercado Financeiro",
+  "Gestão de Recursos Humanos","Gestão de Segurança Privada","Gestão de Tecnologia da Informação",
+  "Gestão de Turismo","Gestão em Agronegócio","Gestão Financeira","Gestão Portuária","Gestão Pública",
+  "Hotelaria","Inteligência Artificial","Inteligência Artificial e Machine Learning",
+  "Investigação e Perícia Judicial","Jogos Digitais","Letras Libras","Logística","Marketing","Museologia",
+  "Processos Gerenciais","Produção Cultural","Publicidade e Propaganda","Redes de Computadores",
+  "Relações Internacionais","Relações Públicas","Secretariado","Segurança Da Informação","Segurança Pública",
+  "Serviços Penais","Sistemas de Informação","Tecnologia em Gestão de Eventos",
+  "Tecnologia em Gestão de Negócios Imobiliários","Tecnologia em Gestão de Serviços Judiciais e Notoriais",
+  "Tecnologia em Mídias Sociais Digitais","Tecnologia em Segurança Cibernética",
+  "Tecnologia em Segurança do Trabalho","Teologia"
+ ],
+ "Semipresencial":[
+  "Acompanhamento do Transtorno do Espectro Autista - TEA","Agronomia","Artes Visuais","Biomedicina",
+  "Ciências Biológicas","Dança","Educação Especial","Educação Física","Engenharia Ambiental e Sanitária",
+  "Engenharia Civil","Engenharia de Produção","Engenharia Elétrica","Engenharia Mecânica","Farmácia",
+  "Fisioterapia","Fonoaudiologia","Geografia","Gerontologia","Gestão Hospitalar","História","Informática",
+  "Letras - Inglês","Letras - Português","Letras-Libras","Matemática","Música","Nutrição","Pedagogia",
+  "Podologia","Psicopedagogia","Radiologia","Saúde e Estética Capilar","Serviço Social","Sociologia",
+  "Tecnologia em Estética e Cosmética","Terapia Ocupacional","Terapias Integrativas e Complementares"
+ ],
+ "Presencial":["Administração","Ciências Contábeis","Direito","Enfermagem","Farmácia","Fisioterapia"]
+};
+
 const originCourses={
  "Segunda Licenciatura":[
   "Andragogia","Artes Visuais","Ciências Biológicas","Ciências Da Religião","Dança",
@@ -203,11 +236,22 @@ const afinidades={
 
 function prefill(tipo){document.getElementById('tipo').value=tipo;updateCourses();document.getElementById('inscricao').scrollIntoView({behavior:'smooth'})}
 function updateCourses(){
- const t=document.getElementById('tipo').value,c=document.getElementById('curso');c.innerHTML='<option value="">Selecione</option>';
- (courses[t]||[]).forEach(x=>{let o=document.createElement('option');o.textContent=x;o.value=x;c.appendChild(o)});
  updateModalities();
+ updateCourseOptions();
  updateOriginCourses();
  document.getElementById('originBox').classList.add('hidden');document.getElementById('resultado').innerHTML='';
+}
+function updateCourseOptions(){
+ const t=document.getElementById('tipo').value;
+ const modality=document.getElementById('modalidade').value;
+ const c=document.getElementById('curso');
+ c.innerHTML='<option value="">Selecione</option>';
+ let list=(t==='Graduação')?(graduationCourses[modality]||[]):(courses[t]||[]);
+ if(t==='Graduação'&&!modality){
+  c.innerHTML='<option value="">Selecione a modalidade primeiro</option>';
+  return;
+ }
+ list.forEach(x=>{let o=document.createElement('option');o.textContent=x;o.value=x;c.appendChild(o)});
 }
 function updateOriginCourses(){
  const t=document.getElementById('tipo').value;
