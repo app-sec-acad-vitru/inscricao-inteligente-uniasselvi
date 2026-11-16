@@ -553,7 +553,7 @@ function proximaEtapa(){
    content.innerHTML='<div class="result ok"><h3>🟢 Dados validados</h3><p>Curso: <b>'+curso+'</b></p><p>Formação de origem: <b>'+orig+'</b></p><p>Você pode avançar para a etapa final.</p></div>';
  }
 }
-async function finalizarEtapa(){
+async async function finalizarEtapa(){
  const t=document.getElementById('tipo').value;
  const origemAtual=document.getElementById('origem').value;
  if(String(t||'').trim().toLowerCase().includes('segunda licenciatura') && String(origemAtual||'').trim().toLowerCase().includes('pedagogia')){
@@ -723,7 +723,7 @@ async function saveRecord(r){
  localStorage.setItem('inscricoes_demo',JSON.stringify(local));
  return data;
 }
-async function openAdmin(){
+async async function openAdmin(){
  document.getElementById('admin').classList.add('show');
  document.getElementById('admin').scrollIntoView({behavior:'smooth'});
  const {data:{session}}=await supabaseClient.auth.getSession();
@@ -772,7 +772,7 @@ function exportCentralCsv(){
  link.href=url;link.download='inscricoes-centralizadas-'+new Date().toISOString().slice(0,10)+'.csv';
  document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
 }
-async function renderAdmin(){
+async async function renderAdmin(){
  const body=document.getElementById('tbody');
  body.innerHTML='<tr><td colspan="12">Carregando inscrições...</td></tr>';
  const {data:a,error}=await supabaseClient.from('inscricoes').select('*').order('created_at',{ascending:false}).limit(1000);
