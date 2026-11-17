@@ -137,7 +137,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <label>Tipo de Ingresso *</label>
     <select id="tipoIngresso" onchange="updateAdmissionDetails()"><option value="">Selecione primeiro o tipo de curso</option></select>
     <div id="admissionDetails" class="hidden">
-      <div id="enemNumberBox" class="hidden"><label for="enemNumber">Informe o número da inscrição do ENEM *</label><input id="enemNumber" type="text" inputmode="numeric" maxlength="15" pattern="[0-9]{15}" placeholder="15 dígitos" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,15)"></div>
+      <div id="enemNumberBox" class="hidden"><label for="enemNumber">Informe o número da inscrição do ENEM *</label><input id="enemNumber" type="text" inputmode="numeric" maxlength="15" pattern="[0-9]{15}" placeholder="15 dígitos" oninput="this.value=this.value.replace(/\D/g,'').slice(0,15)"></div>
       <div id="originInstitutionBox" class="hidden"><label for="originInstitution">Informe o nome da IES de origem *</label><input id="originInstitution" type="text" maxlength="180" placeholder="Nome da instituição de ensino superior"></div>
       <div id="originCourseBox" class="hidden"><label for="originCourse">Informe o curso de origem *</label><input id="originCourse" type="text" maxlength="180" placeholder="Nome do curso de origem"></div>
     </div>
@@ -528,7 +528,7 @@ function continuarCursoEtapa(){
  const out=document.getElementById('resultado');
  if(ingresso==='ENEM'){
   const enem=document.getElementById('enemNumber').value.trim();
-  if(!/^\\d{15}$/.test(enem)){out.innerHTML='<div class="result info"><h3>Confira a inscrição do ENEM</h3><p>Informe o número da inscrição do ENEM com exatamente 15 dígitos.</p></div>';document.getElementById('enemNumber').focus();return;}
+  if(!/^\d{15}$/.test(enem)){out.innerHTML='<div class="result info"><h3>Confira a inscrição do ENEM</h3><p>Informe o número da inscrição do ENEM com exatamente 15 dígitos.</p></div>';document.getElementById('enemNumber').focus();return;}
  }
  if(['Transferência','Segunda Graduação'].includes(ingresso)){
   const ies=document.getElementById('originInstitution').value.trim();
