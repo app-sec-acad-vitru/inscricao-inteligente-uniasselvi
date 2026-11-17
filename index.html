@@ -59,6 +59,15 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 .execNote{font-size:11px;color:#6b7280;line-height:1.5;margin:14px 0 0}
 @media(max-width:900px){.execKpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.execHead{align-items:stretch;flex-direction:column}.execFilter{max-width:none}.execKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.execGrid{grid-template-columns:1fr}.execKpi{padding:13px}.execKpi strong{font-size:25px}.trendChart{gap:3px}.trendCol small{font-size:8px}}
+
+.adminMenu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:24px 0 10px}
+.adminMenuItem{display:flex;align-items:center;gap:14px;text-align:left;padding:19px 20px;background:#fff;border:1px solid #dfe3e8;border-radius:6px;cursor:pointer;color:#202124;min-height:88px;transition:border-color .15s,box-shadow .15s,background .15s}
+.adminMenuItem:hover,.adminMenuItem.active{border-color:#d4ad00;background:#fffdf2;box-shadow:0 3px 12px #0000000a}
+.adminMenuIcon{display:grid;place-items:center;width:42px;height:42px;border-radius:5px;background:#fff2b3;color:#5f4b00;font-size:24px;flex:none}
+.adminMenuItem strong{display:block;font-size:15px}.adminMenuItem small{display:block;color:#6b7280;font-size:12px;margin-top:5px}
+.adminMenuArrow{margin-left:auto;font-size:25px;color:#9ca3af}
+.adminBasePanel{margin-top:22px}.adminBaseActions{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0}
+@media(max-width:650px){.adminMenu{grid-template-columns:1fr}.adminMenuItem{min-height:76px}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -171,10 +180,11 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
       <p id="adminLoginMessage" role="status"></p>
     </div>
     <div id="adminData" class="hidden">
-    <button class="secondary" onclick="renderAdmin()">Atualizar inscrições</button>
-    <button class="secondary" onclick="exportCentralCsv()">Exportar inscrições (CSV)</button>
-    <button class="secondary" onclick="logoutAdmin()">Sair do painel</button>
-    <section class="execPanel" aria-label="Painel executivo de captação">
+      <nav class="adminMenu" aria-label="Menu administrativo">
+        <button type="button" class="adminMenuItem" id="adminMenuCapture" onclick="selectAdminSection('capture')"><span class="adminMenuIcon">▥</span><span><strong>Painel de Captação</strong><small>Indicadores e desempenho</small></span><span class="adminMenuArrow">›</span></button>
+        <button type="button" class="adminMenuItem" id="adminMenuBase" onclick="selectAdminSection('base')"><span class="adminMenuIcon">▤</span><span><strong>Base Geral de inscrições</strong><small>Consultar todos os registros</small></span><span class="adminMenuArrow">›</span></button>
+      </nav>
+          <section id="adminCapturePanel" class="execPanel hidden" aria-label="Painel executivo de captação">
       <div class="execHead">
         <div><span class="execEyebrow">VISÃO EXECUTIVA</span><h2>Painel de captação</h2><p>Acompanhe o volume e o perfil das inscrições registradas na base central.</p></div>
         <div class="execFilter"><label for="adminPeriod">Período de análise</label><select id="adminPeriod" onchange="applyAdminFilters()"><option value="all">Todo o período</option><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="365">Últimos 12 meses</option></select></div>
@@ -196,12 +206,16 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
       </div>
       <p class="execNote">Indicadores calculados sobre inscrições registradas. “Com indicação favorável” representa os status liberados/aptos registrados no protótipo; não equivale a matrícula efetivada. Não há cálculo de conversão, pois ainda não registramos etapas de matrícula ou contratação.</p>
     </section>
+      <section id="adminBasePanel" class="adminBasePanel hidden">
+      <div class="adminBaseActions"><button class="secondary" onclick="renderAdmin()">Atualizar inscrições</button><button class="secondary" onclick="exportCentralCsv()">Exportar inscrições (CSV)</button><button class="secondary" onclick="logoutAdmin()">Sair do painel</button></div>
     <h3>Inscrições registradas na base central</h3>
     <p class="muted">Esta lista consulta os registros centralizados no Supabase, independentemente do dispositivo utilizado na inscrição.</p>
     <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar histórico local deste navegador (JSON)</button>
     <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Tipo de ingresso</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
     </div>
-    <button class="secondary" style="margin-top:18px" onclick="closeAdmin()">Voltar à inscrição</button>
+    </section>
+    </div>
+        <button class="secondary" style="margin-top:18px" onclick="closeAdmin()">Voltar à inscrição</button>
   </div>
 </section>
 
@@ -792,6 +806,26 @@ async function saveRecord(r){
  localStorage.setItem('inscricoes_demo',JSON.stringify(local));
  return data;
 }
+function showAdminMenu(){
+ document.getElementById('adminCapturePanel')?.classList.add('hidden');
+ document.getElementById('adminBasePanel')?.classList.add('hidden');
+ document.getElementById('adminMenuCapture')?.classList.remove('active');
+ document.getElementById('adminMenuBase')?.classList.remove('active');
+}
+async function selectAdminSection(section){
+ const capture=document.getElementById('adminCapturePanel');
+ const base=document.getElementById('adminBasePanel');
+ const captureButton=document.getElementById('adminMenuCapture');
+ const baseButton=document.getElementById('adminMenuBase');
+ if(section==='capture'){
+  capture?.classList.remove('hidden');base?.classList.add('hidden');
+  captureButton?.classList.add('active');baseButton?.classList.remove('active');
+ }else if(section==='base'){
+  base?.classList.remove('hidden');capture?.classList.add('hidden');
+  baseButton?.classList.add('active');captureButton?.classList.remove('active');
+ }else{return;}
+ await renderAdmin();
+}
 async function openAdmin(){
  const section=document.getElementById('admin');
  const login=document.getElementById('adminLogin');
@@ -811,7 +845,7 @@ async function openAdmin(){
    if(role){
     login.classList.add('hidden');
     dataPanel.classList.remove('hidden');
-    await renderAdmin();
+    showAdminMenu();
     return;
    }
    await supabaseClient.auth.signOut();
@@ -834,7 +868,7 @@ async function loginAdmin(){
  message.textContent='';
  document.getElementById('adminLogin').classList.add('hidden');
  document.getElementById('adminData').classList.remove('hidden');
- await renderAdmin();
+ showAdminMenu();
 }
 async function logoutAdmin(){
  await supabaseClient.auth.signOut();
