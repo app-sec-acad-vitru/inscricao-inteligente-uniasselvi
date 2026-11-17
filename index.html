@@ -228,7 +228,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 <script>
 const SUPABASE_URL='https://krkrrcrutggnabywgcan.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_-FO8uwGUccIa17DMxDo9Kg_CqX4fkBo';
-const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const supabaseClient=window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY) : null;
 const courses={
  "Graduação":["Pedagogia","Administração","Ciências Contábeis","Nutrição","Biomedicina","Análise e Desenvolvimento de Sistemas"],
  "Segunda Licenciatura":[
@@ -879,6 +879,7 @@ async function openAdmin(){
  dataPanel.classList.add('hidden');
  if(message) message.textContent='Verificando acesso...';
  try{
+  if(!supabaseClient) throw new Error('A biblioteca de conexão não foi carregada. Atualize a página ou tente novamente em instantes.');
   const {data:{session},error:sessionError}=await supabaseClient.auth.getSession();
   if(sessionError) throw sessionError;
   if(session){
@@ -899,6 +900,7 @@ async function openAdmin(){
  }
 }
 async function loginAdmin(){
+ if(!supabaseClient){document.getElementById('adminLoginMessage').textContent='A conexão com o serviço administrativo não foi carregada. Atualize a página e tente novamente.';return;}
  const email=document.getElementById('adminEmail').value.trim();
  const password=document.getElementById('adminPassword').value;
  const message=document.getElementById('adminLoginMessage');
