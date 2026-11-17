@@ -67,6 +67,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 .adminMenuItem strong{display:block;font-size:15px}.adminMenuItem small{display:block;color:#6b7280;font-size:12px;margin-top:5px}
 .adminMenuArrow{margin-left:auto;font-size:25px;color:#9ca3af}
 .adminBasePanel{margin-top:22px}.adminBaseActions{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0}
+.baseFilters{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px;margin:18px 0 16px;padding:16px;background:#fafafa;border:1px solid #e5e7eb;border-radius:5px}.baseFilter label{display:block;font-size:12px;font-weight:800;margin:0 0 6px}.baseFilter select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:4px;background:#fff;font-size:13px}.baseFilterActions{display:flex;align-items:end}.baseFilterActions button{width:100%;padding:10px}@media(max-width:850px){.baseFilters{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.baseFilters{grid-template-columns:1fr}}
 @media(max-width:650px){.adminMenu{grid-template-columns:1fr}.adminMenuItem{min-height:76px}}
 
 .docLink{display:inline-block;color:#1558a6;text-decoration:underline;font-weight:600;max-width:190px;overflow-wrap:anywhere}
@@ -214,6 +215,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
       <div class="adminBaseActions"><button class="secondary" onclick="renderAdmin()">Atualizar inscrições</button><button class="secondary" onclick="exportCentralCsv()">Exportar inscrições (CSV)</button><button class="secondary" onclick="logoutAdmin()">Sair do painel</button></div>
     <h3>Inscrições registradas na base central</h3>
     <p class="muted">Esta lista consulta os registros centralizados no Supabase, independentemente do dispositivo utilizado na inscrição.</p>
+    <div class="baseFilters" aria-label="Filtros das inscrições"><div class="baseFilter"><label for="filterCourse">Curso</label><select id="filterCourse" onchange="applyAdminFilters()"><option value="">Todos os cursos</option></select></div><div class="baseFilter"><label for="filterModality">Modalidade</label><select id="filterModality" onchange="applyAdminFilters()"><option value="">Todas as modalidades</option></select></div><div class="baseFilter"><label for="filterStatus">Status</label><select id="filterStatus" onchange="applyAdminFilters()"><option value="">Todos os status</option></select></div><div class="baseFilter"><label for="filterDocument">Situação do documento</label><select id="filterDocument" onchange="applyAdminFilters()"><option value="">Todas as situações</option><option value="validado">Validado</option><option value="invalidado">Invalidado</option><option value="pendente">Pendente</option><option value="sem_documento">Sem documento</option><option value="nao_aplicavel">Não se aplica</option></select></div><div class="baseFilterActions"><button class="secondary" type="button" onclick="clearBaseFilters()">Limpar filtros</button></div></div>
     <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar histórico local deste navegador (JSON)</button>
     <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Tipo de ingresso</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th><th>Documento</th><th>Situação Doc.</th></tr></thead><tbody id="tbody"></tbody></table></div>
     </div>
@@ -992,15 +994,36 @@ function renderExecutiveDashboard(rows){
  const maxDay=Math.max(...Object.values(dayRows),1);
  document.getElementById('exTrend').innerHTML=Object.entries(dayRows).map(([key,value])=>{const parts=key.split('-');return '<div class="trendCol"><strong>'+value+'</strong><div class="trendBar" style="height:'+Math.max(2,Math.round(value/maxDay*125))+'px"></div><small>'+parts[2]+'/'+parts[1]+'</small></div>';}).join('');
 }
+function populateBaseFilter(id,field,placeholder){
+ const select=document.getElementById(id);if(!select)return;
+ const current=select.value;
+ const values=[...new Set(allAdminRows.map(r=>String(r[field]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ select.innerHTML='<option value="">'+placeholder+'</option>'+values.map(v=>'<option value="'+escapeHtml(v)+'">'+escapeHtml(v)+'</option>').join('');
+ if(values.includes(current))select.value=current;
+}
+function clearBaseFilters(){
+ ['filterCourse','filterModality','filterStatus','filterDocument'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+ applyAdminFilters();
+}
 async function applyAdminFilters(){
  const period=document.getElementById('adminPeriod')?.value||'all';
- let rows=allAdminRows.slice();
+ let periodRows=allAdminRows.slice();
  if(period!=='all'){
   const days=Number(period);const from=new Date();from.setHours(0,0,0,0);from.setDate(from.getDate()-days+1);
-  rows=rows.filter(r=>{const d=new Date(r.created_at);return !Number.isNaN(d.getTime())&&d>=from;});
+  periodRows=periodRows.filter(r=>{const d=new Date(r.created_at);return !Number.isNaN(d.getTime())&&d>=from;});
  }
+ renderExecutiveDashboard(periodRows);
+ let rows=periodRows.slice();
+ const course=document.getElementById('filterCourse')?.value||'';
+ const modality=document.getElementById('filterModality')?.value||'';
+ const status=document.getElementById('filterStatus')?.value||'';
+ const documentState=document.getElementById('filterDocument')?.value||'';
+ if(course)rows=rows.filter(r=>String(r.curso||'')===course);
+ if(modality)rows=rows.filter(r=>String(r.modalidade||'')===modality);
+ if(status)rows=rows.filter(r=>String(r.status||'')===status);
+ if(documentState==='sem_documento')rows=rows.filter(r=>!r.document_path);
+ else if(documentState)rows=rows.filter(r=>String(r.document_status||'').toLowerCase()===documentState);
  lastAdminRows=rows;
- renderExecutiveDashboard(rows);
  const body=document.getElementById('tbody');
  if(!rows.length){body.innerHTML='<tr><td colspan="15">Nenhuma inscrição encontrada para o período selecionado.</td></tr>';return;}
  const rendered=await Promise.all(rows.map(async x=>{
@@ -1024,6 +1047,9 @@ async function renderAdmin(){
  const {data:a,error}=await supabaseClient.from('inscricoes').select('*').order('created_at',{ascending:false}).limit(1000);
  if(error){body.innerHTML='<tr><td colspan="15">Erro ao consultar inscrições: '+escapeHtml(error.message)+'</td></tr>';return;}
  allAdminRows=a||[];
+ populateBaseFilter('filterCourse','curso','Todos os cursos');
+ populateBaseFilter('filterModality','modalidade','Todas as modalidades');
+ populateBaseFilter('filterStatus','status','Todos os status');
  applyAdminFilters();
 }
 
