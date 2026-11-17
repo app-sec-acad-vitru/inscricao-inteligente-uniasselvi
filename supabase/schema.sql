@@ -27,6 +27,7 @@ create table if not exists public.inscricoes (
   email text not null,
   tipo_curso text not null,
   modalidade text not null,
+  polo text,
   curso text not null,
   curso_origem text,
   status text not null default 'Inscrição recebida',
@@ -37,6 +38,8 @@ create table if not exists public.inscricoes (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.inscricoes add column if not exists polo text;
 
 create index if not exists inscricoes_created_at_idx on public.inscricoes (created_at desc);
 create index if not exists inscricoes_cpf_idx on public.inscricoes (cpf);
