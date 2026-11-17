@@ -221,7 +221,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
       <div class="adminBaseActions"><button class="secondary" onclick="renderAdmin()">Atualizar inscrições</button><button class="secondary" onclick="exportCentralCsv()">Exportar inscrições (CSV)</button><button class="secondary" onclick="logoutAdmin()">Sair do painel</button></div>
     <h3>Inscrições registradas na base central</h3>
     <p class="muted">Esta lista consulta os registros centralizados no Supabase, independentemente do dispositivo utilizado na inscrição.</p>
-    <div class="baseFilters" aria-label="Filtros das inscrições"><div class="baseFilter"><label for="filterCourse">Curso</label><select id="filterCourse" onchange="applyAdminFilters()"><option value="">Todos os cursos</option></select></div><div class="baseFilter"><label for="filterModality">Modalidade</label><select id="filterModality" onchange="applyAdminFilters()"><option value="">Todas as modalidades</option></select></div><div class="baseFilter"><label for="filterStatus">Status</label><select id="filterStatus" onchange="applyAdminFilters()"><option value="">Todos os status</option></select></div><div class="baseFilter"><label for="filterDocument">Situação do documento</label><select id="filterDocument" onchange="applyAdminFilters()"><option value="">Todas as situações</option><option value="validado">Validado</option><option value="invalidado">Invalidado</option><option value="pendente">Pendente</option><option value="sem_documento">Sem documento</option><option value="nao_aplicavel">Não se aplica</option></select></div><div class="baseFilter"><label for="pageSize">Registros por página</label><select id="pageSize" onchange="changeAdminPageSize()"><option value="10">10</option><option value="20" selected>20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select></div><div class="baseFilterActions"><button class="secondary" type="button" onclick="clearBaseFilters()">Limpar filtros</button></div></div>
+    <div class="baseFilters" aria-label="Filtros das inscrições"><div class="baseFilter"><label for="filterCourse">Curso</label><select id="filterCourse" onchange="applyAdminFilters()"><option value="">Todos os cursos</option></select></div><div class="baseFilter"><label for="filterModality">Modalidade</label><select id="filterModality" onchange="applyAdminFilters()"><option value="">Todas as modalidades</option></select></div><div class="baseFilter"><label for="filterStatus">Status</label><select id="filterStatus" onchange="applyAdminFilters()"><option value="">Todos os status</option></select></div><div class="baseFilter"><label for="filterDocument">Situação do documento</label><select id="filterDocument" onchange="applyAdminFilters()"><option value="">Todas as situações</option><option value="validado">Validado</option><option value="invalidado">Invalidado</option><option value="pendente">Pendente</option><option value="sem_documento">Sem documento</option><option value="nao_aplicavel">Não se aplica</option></select></div><div class="baseFilter"><label for="pageSize">Registros por página</label><select id="pageSize" onchange="changeAdminPageSize()"><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select></div><div class="baseFilterActions"><button class="secondary" type="button" onclick="clearBaseFilters()">Limpar filtros</button></div></div>
     <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar histórico local deste navegador (JSON)</button>
     <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Tipo de ingresso</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th><th>Documento</th><th>Situação Doc.</th></tr></thead><tbody id="tbody"></tbody></table></div>
     <div class="adminPagination"><span id="pageInfo" aria-live="polite">Mostrando 0 registros</span><div class="adminPaginationActions"><button class="secondary" id="prevPage" type="button" onclick="changeAdminPage(-1)" disabled>Anterior</button><button class="secondary" id="nextPage" type="button" onclick="changeAdminPage(1)" disabled>Próxima</button></div></div>
@@ -965,20 +965,21 @@ function exportLocalRegistrations(){
 }
 let lastAdminRows=[],allAdminRows=[];
 let currentAdminPage=1;
-let adminPageSize=20;
+let adminPageSize=10;
 let adminRenderToken=0;
 function changeAdminPageSize(){
- adminPageSize=Number(document.getElementById('pageSize')?.value)||20;
+ adminPageSize=Number(document.getElementById('pageSize')?.value)||10;
  currentAdminPage=1;
  applyAdminFilters(false);
 }
 function changeAdminPage(direction){
- const totalPages=Math.max(1,Math.ceil(lastAdminRows.length/adminPageSize));
+ const totalPages=Math.ceil(lastAdminRows.length/adminPageSize);
  const targetPage=currentAdminPage+Number(direction||0);
- if(targetPage<1||targetPage>totalPages||targetPage===currentAdminPage)return;
+ if(targetPage<1||targetPage>totalPages)return;
  currentAdminPage=targetPage;
- applyAdminFilters(false);
+ renderAdminPage();
 }
+
 function exportCentralCsv(){
  if(!lastAdminRows.length){alert('Não há inscrições carregadas para exportar.');return;}
  const cols=[['protocolo','Protocolo'],['created_at','Data de inscrição'],['nome','Nome'],['cpf','CPF'],['endereco','Endereço'],['numero','Número'],['cep','CEP'],['celular','Celular'],['email','E-mail'],['tipo_curso','Tipo de curso'],['modalidade','Modalidade'],['tipo_ingresso','Tipo de ingresso'],['curso','Curso'],['curso_origem','Curso de origem'],['status','Status']];
@@ -1049,10 +1050,9 @@ function clearBaseFilters(){
  ['filterCourse','filterModality','filterStatus','filterDocument'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
  applyAdminFilters();
 }
-async function applyAdminFilters(resetPage=true){
- const renderToken=++adminRenderToken;
+function applyAdminFilters(resetPage=true){
  if(resetPage)currentAdminPage=1;
- adminPageSize=Number(document.getElementById('pageSize')?.value)||adminPageSize||20;
+ adminPageSize=Number(document.getElementById('pageSize')?.value)||10;
  const period=document.getElementById('adminPeriod')?.value||'all';
  let periodRows=allAdminRows.slice();
  if(period!=='all'){
@@ -1071,18 +1071,24 @@ async function applyAdminFilters(resetPage=true){
  if(documentState==='sem_documento')rows=rows.filter(r=>!r.document_path);
  else if(documentState)rows=rows.filter(r=>String(r.document_status||'').toLowerCase()===documentState);
  lastAdminRows=rows;
- const body=document.getElementById('tbody');
  const totalPages=Math.max(1,Math.ceil(rows.length/adminPageSize));
  currentAdminPage=Math.min(currentAdminPage,totalPages);
+ renderAdminPage();
+}
+async function renderAdminPage(){
+ const renderToken=++adminRenderToken;
+ const totalPages=Math.ceil(lastAdminRows.length/adminPageSize);
  const start=(currentAdminPage-1)*adminPageSize;
- const pageRows=rows.slice(start,start+adminPageSize);
+ const pageRows=lastAdminRows.slice(start,start+adminPageSize);
+ const body=document.getElementById('tbody');
  const info=document.getElementById('pageInfo');
  const prev=document.getElementById('prevPage');
  const next=document.getElementById('nextPage');
- if(info)info.textContent=rows.length?`Mostrando ${start+1} a ${Math.min(start+adminPageSize,rows.length)} de ${rows.length} registros`:'Mostrando 0 registros';
- if(prev)prev.disabled=currentAdminPage<=1||!rows.length;
- if(next)next.disabled=currentAdminPage>=totalPages||!rows.length;
- if(!rows.length){body.innerHTML='<tr><td colspan="15">Nenhuma inscrição encontrada com os filtros selecionados.</td></tr>';return;}
+ if(info)info.textContent=lastAdminRows.length?`Mostrando ${start+1} a ${Math.min(start+adminPageSize,lastAdminRows.length)} de ${lastAdminRows.length} registros • Página ${currentAdminPage} de ${totalPages}`:'Mostrando 0 registros';
+ if(prev)prev.disabled=currentAdminPage<=1||!lastAdminRows.length;
+ if(next)next.disabled=currentAdminPage>=totalPages||!lastAdminRows.length;
+ if(!lastAdminRows.length){body.innerHTML='<tr><td colspan="15">Nenhuma inscrição encontrada com os filtros selecionados.</td></tr>';return;}
+ body.innerHTML='<tr><td colspan="15">Atualizando página...</td></tr>';
  const rendered=await Promise.all(pageRows.map(async x=>{
   let docLink='<span class="muted">—</span>';
   if(x.document_path){
