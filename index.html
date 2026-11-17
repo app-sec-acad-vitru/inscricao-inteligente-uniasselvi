@@ -139,7 +139,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <div id="admissionDetails" class="hidden">
       <div id="enemNumberBox" class="hidden"><label for="enemNumber">Informe o número da inscrição do ENEM *</label><input id="enemNumber" type="text" inputmode="numeric" maxlength="15" pattern="[0-9]{15}" placeholder="15 dígitos" oninput="this.value=this.value.replace(/\D/g,'').slice(0,15)"></div>
       <div id="originInstitutionBox" class="hidden"><label for="originInstitution">Informe o nome da IES de origem *</label><input id="originInstitution" type="text" maxlength="180" placeholder="Nome da instituição de ensino superior"></div>
-      <div id="originCourseBox" class="hidden"><label for="originCourse">Informe o curso de origem *</label><input id="originCourse" type="text" maxlength="180" placeholder="Nome do curso de origem"></div>
+      
     </div>
     <label>Curso *</label>
     <select id="curso" onchange="courseChanged()"><option value="">Selecione primeiro o tipo de curso</option></select>
@@ -434,9 +434,8 @@ function updateAdmissionDetails(){
  document.getElementById('admissionDetails').classList.toggle('hidden',!enem&&!transfer);
  document.getElementById('enemNumberBox').classList.toggle('hidden',!enem);
  document.getElementById('originInstitutionBox').classList.toggle('hidden',!transfer);
- document.getElementById('originCourseBox').classList.toggle('hidden',!transfer);
  if(!enem)document.getElementById('enemNumber').value='';
- if(!transfer){document.getElementById('originInstitution').value='';document.getElementById('originCourse').value='';}
+ if(!transfer)document.getElementById('originInstitution').value='';
 }
 function updateCourseOptions(){
  const t=document.getElementById('tipo').value;
@@ -532,9 +531,7 @@ function continuarCursoEtapa(){
  }
  if(['Transferência','Segunda Graduação'].includes(ingresso)){
   const ies=document.getElementById('originInstitution').value.trim();
-  const originCourse=document.getElementById('originCourse').value.trim();
   if(!ies){out.innerHTML='<div class="result info"><h3>Informe a IES de origem</h3><p>Preencha o nome da instituição de ensino superior de origem.</p></div>';document.getElementById('originInstitution').focus();return;}
-  if(!originCourse){out.innerHTML='<div class="result info"><h3>Informe o curso de origem</h3><p>Preencha o nome do curso de origem.</p></div>';document.getElementById('originCourse').focus();return;}
  }
  if(!t||!mod||!ingresso||!curso){out.innerHTML='<div class="result info"><h3>🙂 Complete os dados do curso</h3><p>Selecione o tipo de curso, a modalidade, o tipo de ingresso e o curso desejado.</p></div>';return;}
  if(t==='Graduação'){
@@ -625,7 +622,7 @@ function analisar(){
  } else if(status==='Impedimento regulatório'){
    out.innerHTML += '<button class="secondary" style="margin-top:12px" onclick="voltarCursoEtapa()">Voltar para dados do curso</button>';
  }
- if(classe!=='ok') saveRecord({curso,orig,mod,ingresso,status,t,enem_number:document.getElementById('enemNumber')?.value.trim()||null,origin_institution:document.getElementById('originInstitution')?.value.trim()||null,origin_course:document.getElementById('originCourse')?.value.trim()||null});
+ if(classe!=='ok') saveRecord({curso,orig,mod,ingresso,status,t,enem_number:document.getElementById('enemNumber')?.value.trim()||null,origin_institution:document.getElementById('originInstitution')?.value.trim()||null,origin_course:document.getElementById('origem')?.value.trim()||null});
 }
 function proximaEtapa(){
  const t=document.getElementById('tipo').value;
