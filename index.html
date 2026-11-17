@@ -87,11 +87,13 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <div id="courseStepPanel" class="hidden">
     <div style="border-top:1px solid #e5e7eb;margin:22px 0 16px"></div>
     <h3 style="margin:0 0 10px">Dados do curso</h3>
-    <p class="muted">Selecione o tipo de curso, a modalidade e o curso desejado.</p>
+    <p class="muted">Selecione o tipo de curso, a modalidade, o tipo de ingresso e o curso desejado.</p>
     <div class="row">
       <div><label>Tipo de Curso *</label><select id="tipo" onchange="updateCourses()"><option value="">Selecione</option><option>Graduação</option><option>Segunda Licenciatura</option><option>Formação Pedagógica</option><option>Pós-Graduação</option><option>Profissionalizante</option></select></div>
       <div><label>Modalidade *</label><select id="modalidade" onchange="updateCourseOptions()"><option value="">Selecione</option><option value="EAD">EAD</option><option value="Semipresencial">Semipresencial</option><option value="Presencial">Presencial</option></select></div>
     </div>
+    <label>Tipo de Ingresso *</label>
+    <select id="tipoIngresso"><option value="">Selecione primeiro o tipo de curso</option></select>
     <label>Curso *</label>
     <select id="curso" onchange="courseChanged()"><option value="">Selecione primeiro o tipo de curso</option></select>
 
@@ -158,7 +160,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <h3>Inscrições registradas na base central</h3>
     <p class="muted">Esta lista consulta os registros centralizados no Supabase, independentemente do dispositivo utilizado na inscrição.</p>
     <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar histórico local deste navegador (JSON)</button>
-    <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Tipo de ingresso</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
     </div>
     <button class="secondary" style="margin-top:18px" onclick="closeAdmin()">Voltar à inscrição</button>
   </div>
@@ -343,9 +345,20 @@ function affinityDestinations(origin){
 function prefill(tipo){document.getElementById('tipo').value=tipo;updateCourses();document.getElementById('inscricao').scrollIntoView({behavior:'smooth'})}
 function updateCourses(){
  updateModalities();
+ updateAdmissionTypes();
  updateCourseOptions();
  updateOriginCourses();
  document.getElementById('originBox').classList.add('hidden');document.getElementById('resultado').innerHTML='';
+}
+function updateAdmissionTypes(){
+ const t=document.getElementById('tipo').value;
+ const field=document.getElementById('tipoIngresso');
+ let options=[];
+ if(t==='Graduação') options=['Vestibular','ENEM','Transferência'];
+ else if(t==='Segunda Licenciatura'||t==='Formação Pedagógica') options=['Segunda Graduação'];
+ else if(t==='Pós-Graduação'||t==='Profissionalizante') options=['Não se aplica'];
+ field.innerHTML='<option value="">Selecione</option>'+options.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
+ if(options.length===1) field.value=options[0];
 }
 function updateCourseOptions(){
  const t=document.getElementById('tipo').value;
@@ -433,9 +446,9 @@ function voltarDadosCandidato(){
  document.getElementById('inscricao').scrollIntoView({behavior:'smooth'});
 }
 function continuarCursoEtapa(){
- const t=document.getElementById('tipo').value,mod=document.getElementById('modalidade').value,curso=document.getElementById('curso').value;
+ const t=document.getElementById('tipo').value,mod=document.getElementById('modalidade').value,ingresso=document.getElementById('tipoIngresso').value,curso=document.getElementById('curso').value;
  const out=document.getElementById('resultado');
- if(!t||!mod||!curso){out.innerHTML='<div class="result info"><h3>🙂 Complete os dados do curso</h3><p>Selecione o tipo, a modalidade e o curso desejado.</p></div>';return;}
+ if(!t||!mod||!ingresso||!curso){out.innerHTML='<div class="result info"><h3>🙂 Complete os dados do curso</h3><p>Selecione o tipo de curso, a modalidade, o tipo de ingresso e o curso desejado.</p></div>';return;}
  if(t==='Graduação'){
   out.innerHTML='';
   document.getElementById('inscricao').classList.add('hidden');
@@ -456,7 +469,7 @@ function voltarCursoEtapa(){
  document.getElementById('inscricao').scrollIntoView({behavior:'smooth'});
 }
 function analisar(){
- const t=document.getElementById('tipo').value,mod=document.getElementById('modalidade').value,curso=document.getElementById('curso').value,orig=document.getElementById('origem').value;
+ const t=document.getElementById('tipo').value,mod=document.getElementById('modalidade').value,ingresso=document.getElementById('tipoIngresso').value,curso=document.getElementById('curso').value,orig=document.getElementById('origem').value;
  const out=document.getElementById('resultado');
  const candidato=getCandidateData();
  const dadosFaltantes=Object.entries(candidato).filter(([key,value])=>!String(value||'').trim());
@@ -477,10 +490,10 @@ function analisar(){
  if(tipoKey.includes('segunda licenciatura') && origemKey.includes('pedagogia')){
    const bloqueio='<div class="result no"><h3>⚠️ Segunda Licenciatura não permitida para formação em Pedagogia</h3><p>Identificamos que sua formação de origem é <b>Pedagogia</b>.</p><p>A Resolução CNE/CP nº 4/2024, art. 16, § 8º, excepciona a licenciatura em Pedagogia da possibilidade de ingresso em Segunda Licenciatura. O Parecer CNE/CP nº 5/2025 esclarece que o(a) pedagogo(a) não pode cursar Segunda Licenciatura em outra área.</p><p><b>Por esse motivo, a inscrição não pode prosseguir nesta modalidade.</b> Você poderá se matricular no curso de Licenciatura Plena pretendido.</p><p style="font-size:12px;color:#6b7280"><b>Status:</b> Impedimento regulatório</p></div>';
    out.innerHTML=bloqueio;
-   saveRecord({curso,orig,mod,status:'Impedimento regulatório',t});
+   saveRecord({curso,orig,mod,ingresso,status:'Impedimento regulatório',t});
    return;
  }
- if(!t||!mod||!curso){out.innerHTML='<div class="result info"><h3>🙂 Falta só um pouquinho</h3><p>Preencha tipo de curso, modalidade e curso para continuar.</p></div>';return}
+ if(!t||!mod||!ingresso||!curso){out.innerHTML='<div class="result info"><h3>🙂 Falta só um pouquinho</h3><p>Preencha tipo de curso, modalidade, tipo de ingresso e curso para continuar.</p></div>';return}
  if(['Segunda Licenciatura','Formação Pedagógica'].includes(t)&&!orig){out.innerHTML='<div class="result info"><h3>🙂 Informe sua formação de origem</h3><p>Selecione o curso de origem para continuar.</p></div>';return}
  let status='Aguardando análise',classe='info',titulo='🔎 Vamos conferir';
  let body='';
@@ -524,7 +537,7 @@ function analisar(){
  } else if(status==='Impedimento regulatório'){
    out.innerHTML += '<button class="secondary" style="margin-top:12px" onclick="voltarCursoEtapa()">Voltar para dados do curso</button>';
  }
- if(classe!=='ok') saveRecord({curso,orig,mod,status,t});
+ if(classe!=='ok') saveRecord({curso,orig,mod,ingresso,status,t});
 }
 function proximaEtapa(){
  const t=document.getElementById('tipo').value;
@@ -659,6 +672,7 @@ function concluirResultado(){
  const curso=document.getElementById('curso').value;
  const orig=document.getElementById('origem').value;
  const mod=document.getElementById('modalidade').value;
+ const ingresso=document.getElementById('tipoIngresso').value;
  if(t==='Graduação'){
   next.querySelector('.steps').innerHTML='<span class="stepbar done">1 • Dados do candidato</span><span class="stepbar done">2 • Curso</span><span class="stepbar active">3 • Resultado</span>';
   document.getElementById('nextTitle').textContent='🎉 Inscrição pronta para conclusão';
@@ -670,8 +684,8 @@ function concluirResultado(){
  }
  const candidato=getCandidateData();
  const documentoResumo=t==='Graduação'?'não solicitado nesta etapa':'conferido automaticamente nesta demonstração, quando aplicável';
- document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Candidato:</b> '+escapeHtml(candidato.nome)+'</p><p><b>CPF:</b> '+escapeHtml(candidato.cpf)+'</p><p><b>E-mail:</b> '+escapeHtml(candidato.email)+'</p><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Origem:</b> '+escapeHtml(orig||'Não se aplica')+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> '+documentoResumo+'.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica, quando aplicável.</p></div>';
- if(!activeInscriptionSaved) saveRecord({curso,orig,mod,status:t==='Graduação'?'Inscrição de Graduação liberada':'Inscrição pronta para conclusão',t});
+ document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Candidato:</b> '+escapeHtml(candidato.nome)+'</p><p><b>CPF:</b> '+escapeHtml(candidato.cpf)+'</p><p><b>E-mail:</b> '+escapeHtml(candidato.email)+'</p><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Tipo de ingresso:</b> '+escapeHtml(ingresso||'—')+'</p><p><b>Origem:</b> '+escapeHtml(orig||'Não se aplica')+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> '+documentoResumo+'.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica, quando aplicável.</p></div>';
+ if(!activeInscriptionSaved) saveRecord({curso,orig,mod,ingresso,status:t==='Graduação'?'Inscrição de Graduação liberada':'Inscrição pronta para conclusão',t});
  const actions=next.querySelector('.actions'); actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="novaInscricao()">Nova inscrição</button>';
  next.scrollIntoView({behavior:'smooth'});
 }
@@ -723,7 +737,7 @@ async function saveRecord(r){
  const payload={
   nome:candidate.nome,cpf:candidate.cpf,endereco:candidate.endereco,numero:candidate.numero,
   cep:candidate.cep,celular:candidate.celular,email:candidate.email,
-  tipo_curso:r.t,modalidade:r.mod,curso:r.curso,curso_origem:r.orig||null,
+  tipo_curso:r.t,modalidade:r.mod,tipo_ingresso:r.ingresso||null,curso:r.curso,curso_origem:r.orig||null,
   status:r.status,resultado:r.status,origem_registro:'portal'
  };
  const {data,error}=await supabaseClient.from('inscricoes').insert(payload).select('id,protocolo,created_at').single();
@@ -804,7 +818,7 @@ function exportLocalRegistrations(){
 let lastAdminRows=[];
 function exportCentralCsv(){
  if(!lastAdminRows.length){alert('Não há inscrições carregadas para exportar.');return;}
- const cols=[['protocolo','Protocolo'],['created_at','Data de inscrição'],['nome','Nome'],['cpf','CPF'],['endereco','Endereço'],['numero','Número'],['cep','CEP'],['celular','Celular'],['email','E-mail'],['tipo_curso','Tipo de curso'],['modalidade','Modalidade'],['curso','Curso'],['curso_origem','Curso de origem'],['status','Status']];
+ const cols=[['protocolo','Protocolo'],['created_at','Data de inscrição'],['nome','Nome'],['cpf','CPF'],['endereco','Endereço'],['numero','Número'],['cep','CEP'],['celular','Celular'],['email','E-mail'],['tipo_curso','Tipo de curso'],['modalidade','Modalidade'],['tipo_ingresso','Tipo de ingresso'],['curso','Curso'],['curso_origem','Curso de origem'],['status','Status']];
  const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
  const csv='\uFEFF'+[cols.map(x=>quote(x[1])).join(';'),...lastAdminRows.map(r=>cols.map(x=>quote(r[x[0]])).join(';'))].join('\r\n');
  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
@@ -814,9 +828,9 @@ function exportCentralCsv(){
 }
 async function renderAdmin(){
  const body=document.getElementById('tbody');
- body.innerHTML='<tr><td colspan="12">Carregando inscrições...</td></tr>';
+ body.innerHTML='<tr><td colspan="13">Carregando inscrições...</td></tr>';
  const {data:a,error}=await supabaseClient.from('inscricoes').select('*').order('created_at',{ascending:false}).limit(1000);
- if(error){body.innerHTML='<tr><td colspan="12">Erro ao consultar inscrições: '+escapeHtml(error.message)+'</td></tr>';return;}
+ if(error){body.innerHTML='<tr><td colspan="13">Erro ao consultar inscrições: '+escapeHtml(error.message)+'</td></tr>';return;}
  const rows=a||[];
  lastAdminRows=rows;
  const n=k=>rows.filter(x=>x.tipo_curso===k).length;
@@ -828,7 +842,7 @@ async function renderAdmin(){
  document.getElementById('mImp').textContent=rows.filter(x=>x.status==='Impedimento regulatório').length;
  document.getElementById('mWait').textContent=rows.filter(x=>x.status==='Aguardando análise').length;
  document.getElementById('mOther').textContent=rows.filter(x=>!['Segunda Licenciatura','Formação Pedagógica'].includes(x.tipo_curso)).length;
- body.innerHTML=rows.map(x=>'<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.curso_origem||'—')+'</td><td>'+escapeHtml(x.modalidade||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')||String(x.status||'').includes('liberada')||String(x.status||'').includes('conclusão')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td></tr>').join('')||'<tr><td colspan="12">Nenhuma inscrição registrada na base central.</td></tr>';
+ body.innerHTML=rows.map(x=>'<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.tipo_ingresso||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.curso_origem||'—')+'</td><td>'+escapeHtml(x.modalidade||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')||String(x.status||'').includes('liberada')||String(x.status||'').includes('conclusão')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td></tr>').join('')||'<tr><td colspan="13">Nenhuma inscrição registrada na base central.</td></tr>';
 }
 function resetForm(){location.reload()}
 function showCategory(category,button){
