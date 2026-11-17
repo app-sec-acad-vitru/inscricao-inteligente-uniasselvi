@@ -40,6 +40,17 @@ create table if not exists public.inscricoes (
 );
 
 alter table public.inscricoes add column if not exists polo text;
+-- Colunas utilizadas pelo formulário e pelo painel administrativo.
+alter table public.inscricoes
+  add column if not exists tipo_ingresso text,
+  add column if not exists enem_number text,
+  add column if not exists origin_institution text,
+  add column if not exists origin_course text,
+  add column if not exists document_path text,
+  add column if not exists document_name text,
+  add column if not exists document_status text,
+  add column if not exists document_uploaded_at timestamptz;
+
 
 create index if not exists inscricoes_created_at_idx on public.inscricoes (created_at desc);
 create index if not exists inscricoes_cpf_idx on public.inscricoes (cpf);
