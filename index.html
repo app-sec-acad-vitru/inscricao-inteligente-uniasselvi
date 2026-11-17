@@ -32,7 +32,34 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 .admin{display:none}.admin.show{display:block}.dash{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}.metric{background:#fff;border-radius:4px;padding:20px;border:1px solid var(--line)}.metric strong{display:block;font-size:30px;margin-top:8px}.metric small{color:var(--muted)}.tableWrap{background:#fff;border-radius:4px;border:1px solid var(--line);overflow:auto}.table{width:100%;border-collapse:collapse;min-width:1100px}.table th,.table td{text-align:left;vertical-align:middle;padding:11px 10px;border-bottom:1px solid var(--line);font-size:12px}.table th{background:#fafafa}.table th:last-child,.table td:last-child{min-width:180px;white-space:nowrap}.badge{display:inline-block;white-space:nowrap;word-break:normal;overflow-wrap:normal;padding:6px 9px;border-radius:12px;font-size:10px;line-height:1.25;font-weight:800}.b-ok{background:#dcfce7;color:#166534}.b-no{background:#fee2e2;color:#991b1b}.b-wait{background:#fef3c7;color:#92400e}
 .footer{margin-top:0;background:#111;color:#ddd;padding:40px 24px}.footerIn{max-width:1190px;margin:auto}.footer b{color:#fff}.footerCols{display:grid;grid-template-columns:repeat(3,1fr);gap:25px;margin-top:20px}.footer a{display:block;color:#ddd;margin:9px 0;font-size:13px}
 @media(max-width:850px){.heroIn,.promoIn{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}.dash{grid-template-columns:1fr 1fr}.navlinks{display:none}.hero h1{font-size:36px}.areas{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.grid{grid-template-columns:1fr}.top{font-size:11px}.hero{padding:42px 20px}.container{padding:35px 18px}.formWrap{padding:20px}.footerCols{grid-template-columns:1fr}}</style>
+@media(max-width:560px){.grid{grid-template-columns:1fr}.top{font-size:11px}.hero{padding:42px 20px}.container{padding:35px 18px}.formWrap{padding:20px}.footerCols{grid-template-columns:1fr}}
+/* Painel executivo de captação */
+.execPanel{margin:26px 0 34px;color:#202124}
+.execHead{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:18px}
+.execEyebrow{font-size:10px;font-weight:900;letter-spacing:1.5px;color:#927600}
+.execHead h2{font-size:26px;margin:5px 0}
+.execHead p,.execCardHead p{color:#6b7280;font-size:13px;margin:0}
+.execFilter{min-width:190px}.execFilter label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}.execFilter select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:4px;background:#fff}
+.execKpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:18px 0}
+.execKpi{background:#fff;border:1px solid #e5e7eb;border-top:3px solid #ffd500;border-radius:5px;padding:16px;min-height:112px}
+.execKpi span{display:block;font-size:12px;color:#596273}.execKpi strong{display:block;font-size:29px;margin:7px 0 4px;color:#111}.execKpi small{font-size:11px;color:#737b88;line-height:1.35}
+.execGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.execCard{background:#fff;border:1px solid #e5e7eb;border-radius:5px;padding:18px;min-width:0}
+.execCardHead{margin-bottom:17px}.execCardHead h3{font-size:16px;margin:0 0 5px}
+.trendChart{height:190px;display:flex;align-items:end;gap:7px;padding:12px 3px 0;border-bottom:1px solid #e5e7eb}
+.trendCol{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:end;gap:5px}
+.trendCol strong{font-size:10px;color:#4b5563;font-weight:700}
+.trendBar{width:min(24px,75%);min-height:3px;background:#ffd500;border-radius:3px 3px 0 0}
+.trendCol small{font-size:9px;color:#6b7280;white-space:nowrap}
+.barList{display:grid;gap:13px}
+.barItem{display:grid;grid-template-columns:minmax(90px,1fr) minmax(80px,2fr) 34px;gap:10px;align-items:center}
+.barLabel{font-size:12px;overflow-wrap:anywhere}.barTrack{height:9px;background:#f0f1f3;border-radius:20px;overflow:hidden}.barFill{height:100%;background:#e5bd00;border-radius:20px}.barValue{text-align:right;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.topCourses{display:grid;gap:0}.topCourse{display:grid;grid-template-columns:25px minmax(0,1fr) 38px;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid #f0f1f3}.topCourse:last-child{border-bottom:0}.topRank{width:23px;height:23px;border-radius:50%;background:#fff4b8;display:grid;place-items:center;font-size:11px;font-weight:900}.topCourseName{font-size:12px;line-height:1.35}.topCourseCount{text-align:right;font-size:13px;font-weight:800}
+.execEmpty{font-size:12px;color:#7b8190;padding:14px 0}
+.execNote{font-size:11px;color:#6b7280;line-height:1.5;margin:14px 0 0}
+@media(max-width:900px){.execKpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.execHead{align-items:stretch;flex-direction:column}.execFilter{max-width:none}.execKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.execGrid{grid-template-columns:1fr}.execKpi{padding:13px}.execKpi strong{font-size:25px}.trendChart{gap:3px}.trendCol small{font-size:8px}}
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -147,16 +174,28 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <button class="secondary" onclick="renderAdmin()">Atualizar inscrições</button>
     <button class="secondary" onclick="exportCentralCsv()">Exportar inscrições (CSV)</button>
     <button class="secondary" onclick="logoutAdmin()">Sair do painel</button>
-    <div class="dash">
-      <div class="metric"><small>Inscrições</small><strong id="mTotal">0</strong></div>
-      <div class="metric"><small>Segunda Licenciatura</small><strong id="mSeg">0</strong></div>
-      <div class="metric"><small>Formação Pedagógica</small><strong id="mPed">0</strong></div>
-      <div class="metric"><small>Com afinidade</small><strong id="mOk">0</strong></div>
-      <div class="metric"><small>Sem afinidade</small><strong id="mNo">0</strong></div>
-      <div class="metric"><small>Impedimento regulatório</small><strong id="mImp">0</strong></div>
-      <div class="metric"><small>Aguardando análise</small><strong id="mWait">0</strong></div>
-      <div class="metric"><small>Graduação e outros</small><strong id="mOther">0</strong></div>
-    </div>
+    <section class="execPanel" aria-label="Painel executivo de captação">
+      <div class="execHead">
+        <div><span class="execEyebrow">VISÃO EXECUTIVA</span><h2>Painel de captação</h2><p>Acompanhe o volume e o perfil das inscrições registradas na base central.</p></div>
+        <div class="execFilter"><label for="adminPeriod">Período de análise</label><select id="adminPeriod" onchange="applyAdminFilters()"><option value="all">Todo o período</option><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="365">Últimos 12 meses</option></select></div>
+      </div>
+      <div class="execKpis">
+        <article class="execKpi"><span>Inscrições no período</span><strong id="exTotal">0</strong><small id="exPeriodLabel">Registros encontrados</small></article>
+        <article class="execKpi"><span>Graduação</span><strong id="exGraduacao">0</strong><small id="exGraduacaoShare">0% do total</small></article>
+        <article class="execKpi"><span>Formações especiais</span><strong id="exEspecial">0</strong><small>Segunda Licenciatura + Formação Pedagógica</small></article>
+        <article class="execKpi"><span>Com indicação favorável</span><strong id="exFavoravel">0</strong><small id="exFavoravelShare">0% das inscrições</small></article>
+        <article class="execKpi"><span>Impedimentos</span><strong id="exImpedimentos">0</strong><small id="exImpedimentosShare">0% das inscrições</small></article>
+      </div>
+      <div class="execGrid">
+        <article class="execCard execTrend"><div class="execCardHead"><div><h3>Evolução das inscrições</h3><p>Distribuição diária dos últimos 14 dias</p></div></div><div id="exTrend" class="trendChart"></div></article>
+        <article class="execCard"><div class="execCardHead"><div><h3>Inscrições por tipo de curso</h3><p>Participação no período selecionado</p></div></div><div id="exTypes" class="barList"></div></article>
+        <article class="execCard"><div class="execCardHead"><div><h3>Tipos de ingresso</h3><p>Preferência declarada pelos candidatos</p></div></div><div id="exIngress" class="barList"></div></article>
+        <article class="execCard"><div class="execCardHead"><div><h3>Modalidades</h3><p>Distribuição das inscrições</p></div></div><div id="exModalities" class="barList"></div></article>
+        <article class="execCard"><div class="execCardHead"><div><h3>Situação das inscrições</h3><p>Classificação registrada no fluxo</p></div></div><div id="exStatuses" class="barList"></div></article>
+        <article class="execCard execTop"><div class="execCardHead"><div><h3>Cursos mais procurados</h3><p>Ranking por quantidade de inscrições</p></div></div><div id="exTopCourses" class="topCourses"></div></article>
+      </div>
+      <p class="execNote">Indicadores calculados sobre inscrições registradas. “Com indicação favorável” representa os status liberados/aptos registrados no protótipo; não equivale a matrícula efetivada. Não há cálculo de conversão, pois ainda não registramos etapas de matrícula ou contratação.</p>
+    </section>
     <h3>Inscrições registradas na base central</h3>
     <p class="muted">Esta lista consulta os registros centralizados no Supabase, independentemente do dispositivo utilizado na inscrição.</p>
     <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar histórico local deste navegador (JSON)</button>
@@ -815,7 +854,7 @@ function exportLocalRegistrations(){
  document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
  alert(records.length+' inscrição(ões) exportada(s). Guarde o arquivo em local seguro; ele contém dados pessoais.');
 }
-let lastAdminRows=[];
+let lastAdminRows=[],allAdminRows=[];
 function exportCentralCsv(){
  if(!lastAdminRows.length){alert('Não há inscrições carregadas para exportar.');return;}
  const cols=[['protocolo','Protocolo'],['created_at','Data de inscrição'],['nome','Nome'],['cpf','CPF'],['endereco','Endereço'],['numero','Número'],['cep','CEP'],['celular','Celular'],['email','E-mail'],['tipo_curso','Tipo de curso'],['modalidade','Modalidade'],['tipo_ingresso','Tipo de ingresso'],['curso','Curso'],['curso_origem','Curso de origem'],['status','Status']];
@@ -826,24 +865,76 @@ function exportCentralCsv(){
  link.href=url;link.download='inscricoes-centralizadas-'+new Date().toISOString().slice(0,10)+'.csv';
  document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
 }
+function formatMetric(value){return Number(value||0).toLocaleString('pt-BR');}
+function percentOf(value,total){return total?Math.round(value/total*100):0;}
+function countBy(rows,key){
+ const map={};
+ rows.forEach(row=>{const label=String(row[key]||'Não informado').trim()||'Não informado';map[label]=(map[label]||0)+1;});
+ return Object.entries(map).sort((a,b)=>b[1]-a[1]);
+}
+function renderBarList(id,entries,total){
+ const el=document.getElementById(id);
+ if(!entries.length){el.innerHTML='<div class="execEmpty">Sem inscrições neste recorte.</div>';return;}
+ const max=Math.max(...entries.map(x=>x[1]),1);
+ el.innerHTML=entries.map(([label,value])=>'<div class="barItem"><span class="barLabel">'+escapeHtml(label)+'</span><div class="barTrack"><div class="barFill" style="width:'+Math.max(2,Math.round(value/max*100))+'%"></div></div><span class="barValue" title="'+percentOf(value,total)+'%">'+formatMetric(value)+'</span></div>').join('');
+}
+function renderExecutiveDashboard(rows){
+ const total=rows.length;
+ const countType=type=>rows.filter(r=>r.tipo_curso===type).length;
+ const graduacao=countType('Graduação');
+ const especial=countType('Segunda Licenciatura')+countType('Formação Pedagógica');
+ const favorable=rows.filter(r=>['Afinidade identificada','Apto na regra inicial','Inscrição pronta para conclusão','Inscrição de Graduação liberada'].includes(String(r.status||''))).length;
+ const impediments=rows.filter(r=>String(r.status||'').toLowerCase().includes('impedimento')).length;
+ document.getElementById('exTotal').textContent=formatMetric(total);
+ document.getElementById('exGraduacao').textContent=formatMetric(graduacao);
+ document.getElementById('exGraduacaoShare').textContent=percentOf(graduacao,total)+'% do total';
+ document.getElementById('exEspecial').textContent=formatMetric(especial);
+ document.getElementById('exFavoravel').textContent=formatMetric(favorable);
+ document.getElementById('exFavoravelShare').textContent=percentOf(favorable,total)+'% das inscrições';
+ document.getElementById('exImpedimentos').textContent=formatMetric(impediments);
+ document.getElementById('exImpedimentosShare').textContent=percentOf(impediments,total)+'% das inscrições';
+ const period=document.getElementById('adminPeriod').value;
+ document.getElementById('exPeriodLabel').textContent=period==='all'?'Todo o histórico': 'Últimos '+period+' dias';
+ renderBarList('exTypes',countBy(rows,'tipo_curso'),total);
+ renderBarList('exIngress',countBy(rows,'tipo_ingresso'),total);
+ renderBarList('exModalities',countBy(rows,'modalidade'),total);
+ const statusGroups=[
+  ['Liberada / apta',rows.filter(r=>['Afinidade identificada','Apto na regra inicial','Inscrição pronta para conclusão','Inscrição de Graduação liberada'].includes(String(r.status||''))).length],
+  ['Aguardando análise',rows.filter(r=>String(r.status||'').toLowerCase().includes('aguardando')).length],
+  ['Sem afinidade',rows.filter(r=>String(r.status||'').toLowerCase().includes('sem afinidade')).length],
+  ['Impedimento regulatório',impediments],
+  ['Outros status',rows.filter(r=>!['Afinidade identificada','Apto na regra inicial','Inscrição pronta para conclusão','Inscrição de Graduação liberada'].includes(String(r.status||''))&&!String(r.status||'').toLowerCase().includes('aguardando')&&!String(r.status||'').toLowerCase().includes('sem afinidade')&&!String(r.status||'').toLowerCase().includes('impedimento')).length]
+ ].filter(x=>x[1]>0);
+ renderBarList('exStatuses',statusGroups,total);
+ const top=countBy(rows,'curso').slice(0,6);
+ document.getElementById('exTopCourses').innerHTML=top.length?top.map(([name,value],i)=>'<div class="topCourse"><span class="topRank">'+(i+1)+'</span><span class="topCourseName">'+escapeHtml(name)+'</span><span class="topCourseCount">'+formatMetric(value)+'</span></div>').join(''):'<div class="execEmpty">Sem inscrições neste recorte.</div>';
+ const now=new Date();const dayRows={};
+ for(let i=13;i>=0;i--){const d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()-i);const key=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');dayRows[key]=0;}
+ rows.forEach(r=>{if(!r.created_at)return;const d=new Date(r.created_at);if(Number.isNaN(d.getTime()))return;const key=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');if(Object.prototype.hasOwnProperty.call(dayRows,key))dayRows[key]++;});
+ const maxDay=Math.max(...Object.values(dayRows),1);
+ document.getElementById('exTrend').innerHTML=Object.entries(dayRows).map(([key,value])=>{const parts=key.split('-');return '<div class="trendCol"><strong>'+value+'</strong><div class="trendBar" style="height:'+Math.max(2,Math.round(value/maxDay*125))+'px"></div><small>'+parts[2]+'/'+parts[1]+'</small></div>';}).join('');
+}
+function applyAdminFilters(){
+ const period=document.getElementById('adminPeriod')?.value||'all';
+ let rows=allAdminRows.slice();
+ if(period!=='all'){
+  const days=Number(period);const from=new Date();from.setHours(0,0,0,0);from.setDate(from.getDate()-days+1);
+  rows=rows.filter(r=>{const d=new Date(r.created_at);return !Number.isNaN(d.getTime())&&d>=from;});
+ }
+ lastAdminRows=rows;
+ renderExecutiveDashboard(rows);
+ const body=document.getElementById('tbody');
+ body.innerHTML=rows.map(x=>'<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.tipo_ingresso||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.curso_origem||'—')+'</td><td>'+escapeHtml(x.modalidade||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')||String(x.status||'').includes('liberada')||String(x.status||'').includes('conclusão')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td></tr>').join('')||'<tr><td colspan="13">Nenhuma inscrição encontrada para o período selecionado.</td></tr>';
+}
 async function renderAdmin(){
  const body=document.getElementById('tbody');
  body.innerHTML='<tr><td colspan="13">Carregando inscrições...</td></tr>';
  const {data:a,error}=await supabaseClient.from('inscricoes').select('*').order('created_at',{ascending:false}).limit(1000);
  if(error){body.innerHTML='<tr><td colspan="13">Erro ao consultar inscrições: '+escapeHtml(error.message)+'</td></tr>';return;}
- const rows=a||[];
- lastAdminRows=rows;
- const n=k=>rows.filter(x=>x.tipo_curso===k).length;
- document.getElementById('mTotal').textContent=rows.length;
- document.getElementById('mSeg').textContent=n('Segunda Licenciatura');
- document.getElementById('mPed').textContent=n('Formação Pedagógica');
- document.getElementById('mOk').textContent=rows.filter(x=>['Segunda Licenciatura','Formação Pedagógica'].includes(x.tipo_curso)&&['Afinidade identificada','Apto na regra inicial','Inscrição pronta para conclusão'].includes(x.status)).length;
- document.getElementById('mNo').textContent=rows.filter(x=>x.status==='Sem afinidade').length;
- document.getElementById('mImp').textContent=rows.filter(x=>x.status==='Impedimento regulatório').length;
- document.getElementById('mWait').textContent=rows.filter(x=>x.status==='Aguardando análise').length;
- document.getElementById('mOther').textContent=rows.filter(x=>!['Segunda Licenciatura','Formação Pedagógica'].includes(x.tipo_curso)).length;
- body.innerHTML=rows.map(x=>'<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.tipo_ingresso||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.curso_origem||'—')+'</td><td>'+escapeHtml(x.modalidade||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')||String(x.status||'').includes('liberada')||String(x.status||'').includes('conclusão')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td></tr>').join('')||'<tr><td colspan="13">Nenhuma inscrição registrada na base central.</td></tr>';
+ allAdminRows=a||[];
+ applyAdminFilters();
 }
+
 function resetForm(){location.reload()}
 function showCategory(category,button){
  document.querySelectorAll('.categoryBar button').forEach(b=>b.classList.remove('active'));
