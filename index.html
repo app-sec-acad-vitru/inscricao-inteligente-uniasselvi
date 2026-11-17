@@ -776,7 +776,7 @@ async function concluirResultado(){
  const documentoResumo=t==='Graduação'?'não solicitado nesta etapa':'arquivo anexado e submetido à leitura automática demonstrativa';
  if(t==='Graduação')activeDocumentStatus='nao_aplicavel';
  document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Candidato:</b> '+escapeHtml(candidato.nome)+'</p><p><b>CPF:</b> '+escapeHtml(candidato.cpf)+'</p><p><b>E-mail:</b> '+escapeHtml(candidato.email)+'</p><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Tipo de ingresso:</b> '+escapeHtml(ingresso||'—')+'</p><p><b>Origem:</b> '+escapeHtml(orig||'Não se aplica')+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> '+documentoResumo+'.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica, quando aplicável.</p></div>';
- await saveRecord({curso,orig,mod,ingresso,status:t==='Graduação'?'Inscrição de Graduação liberada':'Inscrição pronta para conclusão',t,documentStatus:t==='Graduação'?'nao_aplicavel':activeDocumentStatus});
+ await saveRecord({curso,orig,mod,ingresso,status:t==='Graduação'?'Inscrição de Graduação liberada':'Inscrição pronta para conclusão',t,enem_number:document.getElementById('enemNumber')?.value.trim()||null,origin_institution:document.getElementById('originInstitution')?.value.trim()||null,origin_course:orig||null,documentStatus:t==='Graduação'?'nao_aplicavel':activeDocumentStatus});
  const actions=next.querySelector('.actions'); actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="novaInscricao()">Nova inscrição</button>';
  next.scrollIntoView({behavior:'smooth'});
 }
