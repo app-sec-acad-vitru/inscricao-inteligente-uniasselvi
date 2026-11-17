@@ -68,6 +68,10 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
 .adminMenuArrow{margin-left:auto;font-size:25px;color:#9ca3af}
 .adminBasePanel{margin-top:22px}.adminBaseActions{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0}
 @media(max-width:650px){.adminMenu{grid-template-columns:1fr}.adminMenuItem{min-height:76px}}
+
+.docLink{display:inline-block;color:#1558a6;text-decoration:underline;font-weight:600;max-width:190px;overflow-wrap:anywhere}
+.docState{display:inline-grid;place-items:center;width:25px;height:25px;border-radius:50%;font-size:18px;font-weight:800;line-height:1}
+.docValid{color:#087a3d;background:#e2f8eb}.docInvalid{color:#c62828;background:#fde8e8}.docPending{color:#946200;background:#fff4d6}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -211,7 +215,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <h3>Inscrições registradas na base central</h3>
     <p class="muted">Esta lista consulta os registros centralizados no Supabase, independentemente do dispositivo utilizado na inscrição.</p>
     <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar histórico local deste navegador (JSON)</button>
-    <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Tipo de ingresso</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Tipo de ingresso</th><th>Curso</th><th>Origem</th><th>Modalidade</th><th>Status</th><th>Documento</th><th>Situação Doc.</th></tr></thead><tbody id="tbody"></tbody></table></div>
     </div>
     </section>
     </div>
@@ -667,18 +671,23 @@ async function validarDocumento(file){
    const hits=academicTerms.filter(x=>n.includes(x));
    const docOk=hits.length>=2;
    if(!docOk || !originOk){
+     activeDocumentFile=file;activeDocumentStatus='invalidado';
      const motivos=[];
      if(!docOk) motivos.push('não foram encontradas evidências suficientes de um diploma ou histórico acadêmico');
      if(!originOk) motivos.push('não foi localizada no documento a formação de origem informada ('+escapeHtml(orig)+')');
      showDocStatus('<h3>🔴 Documento não validado</h3><p>Não podemos concluir a inscrição com este arquivo.</p><ul><li>'+motivos.join('</li><li>')+'</li></ul><p><b>O que fazer:</b> envie um diploma, certificado ou histórico acadêmico legível que comprove a formação informada.</p><p style="font-size:12px;color:#6b7280"><b>Curso pretendido:</b> '+escapeHtml(curso)+' • <b>Origem informada:</b> '+escapeHtml(orig)+'</p>','no');
      const actions=document.querySelector('#nextPage .actions');
      actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="reprocessarDocumento()">Enviar outro documento</button>';
+     await saveRecord({curso,orig,mod:document.getElementById('modalidade').value,ingresso:document.getElementById('tipoIngresso').value,status:'Documento não validado',t:document.getElementById('tipo').value,documentStatus:'invalidado'});
      return;
    }
+   activeDocumentFile=file;activeDocumentStatus='validado';
    showDocStatus('<h3>🟢 Documento compatível com a formação informada</h3><p>Encontramos evidências de documento acadêmico e identificamos a formação de origem <b>'+escapeHtml(orig)+'</b>.</p><p>Agora podemos concluir a etapa documental e registrar o resultado da análise.</p><p style="font-size:12px;color:#6b7280">Evidências encontradas: '+hits.map(escapeHtml).join(', ')+'</p>','ok');
    const actions=document.querySelector('#nextPage .actions');
    actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="concluirResultado()">Concluir análise</button>';
  }catch(e){
+   activeDocumentFile=file;activeDocumentStatus='pendente';
+   await saveRecord({curso,orig,mod:document.getElementById('modalidade').value,ingresso:document.getElementById('tipoIngresso').value,status:'Documento aguardando análise',t:document.getElementById('tipo').value,documentStatus:'pendente'});
    showDocStatus('<h3>🟠 Não foi possível ler o arquivo</h3><p>O documento foi recebido, mas a leitura automática não conseguiu extrair texto suficiente. Isso <b>não significa aprovação</b>.</p><p>Envie uma imagem/PDF mais legível ou deixe a análise para conferência acadêmica.</p><p style="font-size:12px;color:#6b7280">Detalhe técnico: '+escapeHtml(e.message||'falha de leitura')+'</p>','info');
    const actions=document.querySelector('#nextPage .actions');
    actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="reprocessarDocumento()">Tentar outro arquivo</button>';
@@ -717,7 +726,7 @@ function reprocessarDocumento(){
  document.getElementById('nextContent').innerHTML='<div class="result info"><h3>📎 Envie outro documento</h3><p>Selecione um diploma, certificado ou histórico acadêmico legível que comprove a formação informada.</p><label>Documento comprobatório *</label><input id="documentoNext" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>';
 }
 
-function concluirResultado(){
+async function concluirResultado(){
  const t=document.getElementById('tipo').value;
  const next=document.getElementById('nextPage');
  next.classList.remove('hidden');
@@ -736,9 +745,10 @@ function concluirResultado(){
   document.getElementById('nextText').textContent='As etapas do protótipo foram concluídas.';
  }
  const candidato=getCandidateData();
- const documentoResumo=t==='Graduação'?'não solicitado nesta etapa':'conferido automaticamente nesta demonstração, quando aplicável';
+ const documentoResumo=t==='Graduação'?'não solicitado nesta etapa':'arquivo anexado e submetido à leitura automática demonstrativa';
+ if(t==='Graduação')activeDocumentStatus='nao_aplicavel';
  document.getElementById('nextContent').innerHTML='<div class="result ok"><h3>🟢 Você pode continuar</h3><p><b>Candidato:</b> '+escapeHtml(candidato.nome)+'</p><p><b>CPF:</b> '+escapeHtml(candidato.cpf)+'</p><p><b>E-mail:</b> '+escapeHtml(candidato.email)+'</p><p><b>Curso:</b> '+escapeHtml(curso)+'</p><p><b>Tipo de ingresso:</b> '+escapeHtml(ingresso||'—')+'</p><p><b>Origem:</b> '+escapeHtml(orig||'Não se aplica')+'</p><p><b>Modalidade:</b> '+escapeHtml(mod)+'</p><p><b>Documento:</b> '+documentoResumo+'.</p><p>O próximo passo, em produção, será gerar o protocolo e encaminhar a documentação para conferência acadêmica, quando aplicável.</p></div>';
- if(!activeInscriptionSaved) saveRecord({curso,orig,mod,ingresso,status:t==='Graduação'?'Inscrição de Graduação liberada':'Inscrição pronta para conclusão',t});
+ await saveRecord({curso,orig,mod,ingresso,status:t==='Graduação'?'Inscrição de Graduação liberada':'Inscrição pronta para conclusão',t,documentStatus:t==='Graduação'?'nao_aplicavel':activeDocumentStatus});
  const actions=next.querySelector('.actions'); actions.innerHTML='<button class="secondary" onclick="voltarEtapa1()">Voltar</button><button class="cta" style="margin:0;max-width:260px" onclick="novaInscricao()">Nova inscrição</button>';
  next.scrollIntoView({behavior:'smooth'});
 }
@@ -779,30 +789,63 @@ function maskPhone(input){
  input.value=v;
 }
 let activeInscriptionSaved=false;
+let activeInscriptionSaved=false;
+let activeRecordId=null;
+let activeDocumentFile=null;
+let activeDocumentStatus='nao_aplicavel';
+let activeDocumentPath=null;
+
+function safeDocumentName(name){
+ return String(name||'documento').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-zA-Z0-9._-]/g,'_').slice(-100);
+}
+async function uploadInscriptionDocument(file){
+ if(!file) return {path:null,name:null};
+ const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const path='inscricoes/'+Date.now()+'_'+crypto.randomUUID()+'_'+safeDocumentName(file.name||('documento.'+ext));
+ const {data,error}=await supabaseClient.storage.from('documentos-inscricoes').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||undefined});
+ if(error) throw error;
+ return {path:data.path,name:file.name};
+}
 async function saveRecord(r){
- if(activeInscriptionSaved)return;
- activeInscriptionSaved=true;
  const candidate=getCandidateData();
- const localRecord={...candidate,...r,protocolo:'PENDENTE-'+String(Date.now()).slice(-6),created_at:new Date().toISOString()};
- let local=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
- local.push(localRecord);
- localStorage.setItem('inscricoes_demo',JSON.stringify(local));
+ let uploaded={path:activeDocumentPath,name:activeDocumentFile?.name||r.documentName||null};
+ try{
+  if(activeDocumentFile){
+   uploaded=await uploadInscriptionDocument(activeDocumentFile);
+   activeDocumentPath=uploaded.path;
+  }
+ }catch(error){
+  console.error('Falha ao enviar documento para o armazenamento:',error);
+  alert('Não foi possível armazenar o documento. A inscrição não será registrada sem o anexo. Detalhe: '+(error.message||'falha no armazenamento'));
+  return null;
+ }
  const payload={
   nome:candidate.nome,cpf:candidate.cpf,endereco:candidate.endereco,numero:candidate.numero,
   cep:candidate.cep,celular:candidate.celular,email:candidate.email,
   tipo_curso:r.t,modalidade:r.mod,tipo_ingresso:r.ingresso||null,curso:r.curso,curso_origem:r.orig||null,
-  status:r.status,resultado:r.status,origem_registro:'portal'
+  status:r.status,resultado:r.status,origem_registro:'portal',
+  document_path:uploaded.path,
+  document_name:uploaded.name,
+  document_status:r.documentStatus||activeDocumentStatus||'nao_aplicavel',
+  document_uploaded_at:uploaded.path?new Date().toISOString():null
  };
- const {data,error}=await supabaseClient.from('inscricoes').insert(payload).select('id,protocolo,created_at').single();
- if(error){
-   activeInscriptionSaved=false;
-   console.error('Falha ao gravar inscrição no Supabase:',error);
-   alert('Não foi possível salvar sua inscrição na base central. Seus dados ficaram apenas neste navegador. Motivo: '+error.message);
-   return null;
+ let data,error;
+ if(activeRecordId){
+  ({data,error}=await supabaseClient.from('inscricoes').update(payload).eq('id',activeRecordId).select('id,protocolo,created_at').single());
+ }else{
+  ({data,error}=await supabaseClient.from('inscricoes').insert(payload).select('id,protocolo,created_at').single());
  }
- localRecord.protocolo=data.protocolo;
- localRecord.id=data.id;
- localRecord.created_at=data.created_at;
+ if(error){
+  console.error('Falha ao gravar inscrição no Supabase:',error);
+  alert('Não foi possível salvar a inscrição na base central. Verifique se as colunas e o armazenamento de documentos foram configurados. Detalhe: '+error.message);
+  return null;
+ }
+ activeInscriptionSaved=true;
+ activeRecordId=data.id;
+ const localRecord={...candidate,...r,protocolo:data.protocolo,id:data.id,created_at:data.created_at,document_path:uploaded.path,document_name:uploaded.name,document_status:payload.document_status};
+ let local=JSON.parse(localStorage.getItem('inscricoes_demo')||'[]');
+ const idx=local.findIndex(x=>x.id===data.id);
+ if(idx>=0)local[idx]=localRecord;else local.push(localRecord);
  localStorage.setItem('inscricoes_demo',JSON.stringify(local));
  return data;
 }
@@ -948,7 +991,7 @@ function renderExecutiveDashboard(rows){
  const maxDay=Math.max(...Object.values(dayRows),1);
  document.getElementById('exTrend').innerHTML=Object.entries(dayRows).map(([key,value])=>{const parts=key.split('-');return '<div class="trendCol"><strong>'+value+'</strong><div class="trendBar" style="height:'+Math.max(2,Math.round(value/maxDay*125))+'px"></div><small>'+parts[2]+'/'+parts[1]+'</small></div>';}).join('');
 }
-function applyAdminFilters(){
+async function applyAdminFilters(){
  const period=document.getElementById('adminPeriod')?.value||'all';
  let rows=allAdminRows.slice();
  if(period!=='all'){
@@ -958,13 +1001,27 @@ function applyAdminFilters(){
  lastAdminRows=rows;
  renderExecutiveDashboard(rows);
  const body=document.getElementById('tbody');
- body.innerHTML=rows.map(x=>'<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.tipo_ingresso||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.curso_origem||'—')+'</td><td>'+escapeHtml(x.modalidade||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')||String(x.status||'').includes('liberada')||String(x.status||'').includes('conclusão')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td></tr>').join('')||'<tr><td colspan="13">Nenhuma inscrição encontrada para o período selecionado.</td></tr>';
+ if(!rows.length){body.innerHTML='<tr><td colspan="15">Nenhuma inscrição encontrada para o período selecionado.</td></tr>';return;}
+ const rendered=await Promise.all(rows.map(async x=>{
+  let docLink='<span class="muted">—</span>';
+  if(x.document_path){
+   const {data,error}=await supabaseClient.storage.from('documentos-inscricoes').createSignedUrl(x.document_path,3600);
+   docLink=!error&&data?.signedUrl?'<a class="docLink" href="'+escapeHtml(data.signedUrl)+'" target="_blank" rel="noopener">📎 '+escapeHtml(x.document_name||'Abrir documento')+'</a>':'<span class="muted" title="'+escapeHtml(error?.message||'Link indisponível')+'">Indisponível</span>';
+  }
+  const ds=String(x.document_status||'').toLowerCase();
+  let docState='<span class="docState docPending" title="Documento não enviado ou sem classificação">—</span>';
+  if(ds==='validado')docState='<span class="docState docValid" title="Documento validado" aria-label="Documento validado">✓</span>';
+  else if(ds==='invalidado')docState='<span class="docState docInvalid" title="Documento invalidado" aria-label="Documento invalidado">✕</span>';
+  else if(ds==='pendente')docState='<span class="docState docPending" title="Documento aguardando análise" aria-label="Documento aguardando análise">…</span>';
+  return '<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.tipo_ingresso||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.curso_origem||'—')+'</td><td>'+escapeHtml(x.modalidade||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')||String(x.status||'').includes('liberada')||String(x.status||'').includes('conclusão')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')||String(x.status||'').includes('não validado')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td><td>'+docLink+'</td><td>'+docState+'</td></tr>';
+ }));
+ body.innerHTML=rendered.join('');
 }
 async function renderAdmin(){
  const body=document.getElementById('tbody');
- body.innerHTML='<tr><td colspan="13">Carregando inscrições...</td></tr>';
+ body.innerHTML='<tr><td colspan="15">Carregando inscrições...</td></tr>';
  const {data:a,error}=await supabaseClient.from('inscricoes').select('*').order('created_at',{ascending:false}).limit(1000);
- if(error){body.innerHTML='<tr><td colspan="13">Erro ao consultar inscrições: '+escapeHtml(error.message)+'</td></tr>';return;}
+ if(error){body.innerHTML='<tr><td colspan="15">Erro ao consultar inscrições: '+escapeHtml(error.message)+'</td></tr>';return;}
  allAdminRows=a||[];
  applyAdminFilters();
 }
