@@ -966,6 +966,7 @@ function exportLocalRegistrations(){
 let lastAdminRows=[],allAdminRows=[];
 let currentAdminPage=1;
 let adminPageSize=20;
+let adminRenderToken=0;
 function changeAdminPageSize(){
  adminPageSize=Number(document.getElementById('pageSize')?.value)||20;
  currentAdminPage=1;
@@ -973,7 +974,9 @@ function changeAdminPageSize(){
 }
 function changeAdminPage(direction){
  const totalPages=Math.max(1,Math.ceil(lastAdminRows.length/adminPageSize));
- currentAdminPage=Math.min(totalPages,Math.max(1,currentAdminPage+direction));
+ const targetPage=currentAdminPage+Number(direction||0);
+ if(targetPage<1||targetPage>totalPages||targetPage===currentAdminPage)return;
+ currentAdminPage=targetPage;
  applyAdminFilters(false);
 }
 function exportCentralCsv(){
@@ -1047,6 +1050,7 @@ function clearBaseFilters(){
  applyAdminFilters();
 }
 async function applyAdminFilters(resetPage=true){
+ const renderToken=++adminRenderToken;
  if(resetPage)currentAdminPage=1;
  adminPageSize=Number(document.getElementById('pageSize')?.value)||adminPageSize||20;
  const period=document.getElementById('adminPeriod')?.value||'all';
@@ -1092,6 +1096,7 @@ async function applyAdminFilters(resetPage=true){
   else if(ds==='pendente')docState='<span class="docState docPending" title="Documento aguardando análise" aria-label="Documento aguardando análise">…</span>';
   return '<tr><td>'+escapeHtml(x.protocolo||'')+'</td><td>'+escapeHtml(x.nome||'—')+'</td><td>'+escapeHtml(x.cpf||'—')+'</td><td>'+escapeHtml(x.endereco||'—')+'</td><td>'+escapeHtml(x.numero||'—')+'</td><td>'+escapeHtml(x.cep||'—')+'</td><td>'+escapeHtml(x.celular||'—')+'</td><td>'+escapeHtml(x.email||'—')+'</td><td>'+escapeHtml(x.tipo_ingresso||'—')+'</td><td>'+escapeHtml(x.curso||'—')+'</td><td>'+escapeHtml(x.curso_origem||'—')+'</td><td>'+escapeHtml(x.modalidade||'—')+'</td><td><span class="badge '+(String(x.status||'').includes('Afinidade')||String(x.status||'').includes('Apto')||String(x.status||'').includes('liberada')||String(x.status||'').includes('conclusão')?'b-ok':String(x.status||'').includes('Impedimento')||String(x.status||'').includes('Sem')||String(x.status||'').includes('não validado')?'b-no':'b-wait')+'">'+escapeHtml(x.status||'')+'</span></td><td>'+docLink+'</td><td>'+docState+'</td></tr>';
  }));
+ if(renderToken!==adminRenderToken)return;
  body.innerHTML=rendered.join('');
 }
 async function renderAdmin(){
