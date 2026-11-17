@@ -224,7 +224,7 @@ label{display:block;font-size:13px;font-weight:800;margin:16px 0 7px}select,inpu
     <div class="baseFilters" aria-label="Filtros das inscrições"><div class="baseFilter"><label for="filterCourse">Curso</label><select id="filterCourse" onchange="applyAdminFilters()"><option value="">Todos os cursos</option></select></div><div class="baseFilter"><label for="filterModality">Modalidade</label><select id="filterModality" onchange="applyAdminFilters()"><option value="">Todas as modalidades</option></select></div><div class="baseFilter"><label for="filterStatus">Status</label><select id="filterStatus" onchange="applyAdminFilters()"><option value="">Todos os status</option></select></div><div class="baseFilter"><label for="filterDocument">Situação do documento</label><select id="filterDocument" onchange="applyAdminFilters()"><option value="">Todas as situações</option><option value="validado">Validado</option><option value="invalidado">Invalidado</option><option value="pendente">Pendente</option><option value="sem_documento">Sem documento</option><option value="nao_aplicavel">Não se aplica</option></select></div><div class="baseFilter"><label for="pageSize">Registros por página</label><select id="pageSize" onchange="changeAdminPageSize()"><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select></div><div class="baseFilterActions"><button class="secondary" type="button" onclick="clearBaseFilters()">Limpar filtros</button></div></div>
     <button class="cta" style="margin:10px 0 16px;max-width:320px" onclick="exportLocalRegistrations()">Exportar histórico local deste navegador (JSON)</button>
     <div class="tableWrap"><table class="table"><thead><tr><th>Protocolo</th><th>Nome</th><th>CPF</th><th>Endereço</th><th>Nº</th><th>CEP</th><th>Celular</th><th>E-mail</th><th>Tipo de ingresso</th><th>Número do ENEM</th><th>IES de origem</th><th>Curso de origem (selecionado)</th><th>Curso</th><th>Modalidade</th><th>Status</th><th>Documento</th><th>Situação Doc.</th></tr></thead><tbody id="tbody"></tbody></table></div>
-    <div class="adminPagination"><span id="pageInfo" aria-live="polite">Mostrando 0 registros</span><div class="adminPaginationActions"><button class="secondary" id="prevPage" type="button" disabled>Anterior</button><button class="secondary" id="nextPage" type="button" disabled>Próxima</button></div></div>
+    <div class="adminPagination"><span id="pageInfo" aria-live="polite">Mostrando 0 registros</span><div class="adminPaginationActions"><button class="secondary" id="prevPage" type="button" disabled>Anterior</button><button class="secondary" id="nextPageBtn" type="button" disabled>Próxima</button></div></div>
     </div>
     </section>
     </div>
@@ -982,7 +982,7 @@ function changeAdminPage(direction){
 }
 window.changeAdminPage=changeAdminPage;
 document.getElementById('prevPage')?.addEventListener('click',()=>changeAdminPage(-1));
-document.getElementById('nextPage')?.addEventListener('click',()=>changeAdminPage(1));
+document.getElementById('nextPageBtn')?.addEventListener('click',()=>changeAdminPage(1));
 
 function exportCentralCsv(){
  if(!lastAdminRows.length){alert('Não há inscrições carregadas para exportar.');return;}
@@ -1087,7 +1087,7 @@ async function renderAdminPage(){
  const body=document.getElementById('tbody');
  const info=document.getElementById('pageInfo');
  const prev=document.getElementById('prevPage');
- const next=document.getElementById('nextPage');
+ const next=document.getElementById('nextPageBtn');
  if(info)info.textContent=lastAdminRows.length?`Mostrando ${start+1} a ${Math.min(start+adminPageSize,lastAdminRows.length)} de ${lastAdminRows.length} registros • Página ${currentAdminPage} de ${totalPages}`:'Mostrando 0 registros';
  if(prev)prev.disabled=currentAdminPage<=1||!lastAdminRows.length;
  if(next)next.disabled=currentAdminPage>=totalPages||!lastAdminRows.length;
