@@ -453,8 +453,10 @@ function updateCourseOptions(){
  list.forEach(x=>{let o=document.createElement('option');o.textContent=x;o.value=x;c.appendChild(o)});
 }
 function updateOriginCourses(){
- const t=document.getElementById('tipo').value;
+ const typeField=document.getElementById('tipo');
  const origin=document.getElementById('origem');
+ if(!typeField||!origin)return;
+ const t=typeField.value;
  let list=originCourses[t]||[];
  if(t==='Formação Pedagógica'){
   const matrixOrigins=Object.values(afinidades).flat();
@@ -465,8 +467,11 @@ function updateOriginCourses(){
    seen.add(key);return true;
   });
  }
- origin.innerHTML='<option value="">Selecione sua formação</option>'+list.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
- document.getElementById('docBox').classList.add('hidden');
+ const previous=origin.value;
+ origin.innerHTML='<option value="">Selecione sua formação</option>'+list.map(x=>'<option value="'+String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')+'">'+String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</option>').join('');
+ if(list.includes(previous))origin.value=previous;
+ const docBox=document.getElementById('docBox');
+ if(docBox)docBox.classList.add('hidden');
 }
 function updateModalities(){
  const t=document.getElementById('tipo').value;
@@ -478,6 +483,7 @@ function updateModalities(){
 }
 function courseChanged(){
  const t=document.getElementById('tipo').value;
+ updateOriginCourses();
  if(t==='Segunda Licenciatura'||t==='Formação Pedagógica') document.getElementById('originBox').classList.remove('hidden');
  else document.getElementById('originBox').classList.add('hidden');
  document.getElementById('resultado').innerHTML='';
@@ -526,6 +532,7 @@ function voltarDadosCandidato(){
  document.getElementById('inscricao').scrollIntoView({behavior:'smooth'});
 }
 function continuarCursoEtapa(){
+ updateOriginCourses();
  const t=document.getElementById('tipo').value,mod=document.getElementById('modalidade').value,ingresso=document.getElementById('tipoIngresso').value,curso=document.getElementById('curso').value;
  const out=document.getElementById('resultado');
  if(ingresso==='ENEM'){
