@@ -420,7 +420,7 @@ function updateAdmissionTypes(){
  const t=document.getElementById('tipo').value;
  const field=document.getElementById('tipoIngresso');
  let options=[];
- if(t==='Graduação') options=['Vestibular','ENEM','Transferência'];
+ if(t==='Graduação') options=['Vestibular','ENEM','Transferência','Segunda Graduação'];
  else if(t==='Segunda Licenciatura'||t==='Formação Pedagógica') options=['Segunda Graduação'];
  else if(t==='Pós-Graduação'||t==='Profissionalizante') options=['Não se aplica'];
  field.innerHTML='<option value="">Selecione</option>'+options.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
